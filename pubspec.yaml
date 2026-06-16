@@ -35,6 +35,13 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # State management (ChangeNotifier) + dependency injection. Keep it simple:
+  # we use ONLY provider here. Do NOT add Riverpod or Bloc.
+  provider: ^6.1.2
+
+  # Date / number / message formatting and localization helpers.
+  intl: ^0.19.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -57,10 +64,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # App images (logos shown in the top BrandBar).
+  # Drop the PNG logos here:
+  #   assets/images/hospital_logo.png  (Alamein Model Hospital)
+  #   assets/images/aiu_logo.png       (AIU)
+  assets:
+    - assets/images/
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
