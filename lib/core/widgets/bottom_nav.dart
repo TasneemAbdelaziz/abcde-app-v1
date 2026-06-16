@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_theme.dart';
 
@@ -74,17 +75,17 @@ class _NavTab extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: 8.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 22.sp),
+            SizedBox(height: 4.h),
             Text(
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 10,
+                fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_theme.dart';
 
@@ -17,8 +18,9 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
 
   const BrandBar({super.key, this.title});
 
-  static const double _brandRow = 56;
-  static const double _titleRow = 44;
+  // Heights scale with ScreenUtil (.h). Getters, not const, so `.h` works.
+  double get _brandRow => 56.h;
+  double get _titleRow => 44.h;
 
   @override
   Size get preferredSize =>
@@ -36,7 +38,7 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
           // --- Brand row (logos) ---
           Container(
             height: _brandRow,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
             decoration: const BoxDecoration(
               color: AppColors.bg,
               border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -44,9 +46,9 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
             child: Row(
               children: [
                 _logo('assets/images/hospital_logo.png', 'Alamein Model Hospital',
-                    height: 24),
+                    height: 35.h),
                 const Spacer(),
-                _logo('assets/images/aiu_logo.png', 'AIU', height: 40),
+                _logo('assets/images/aiu_logo.png', 'AIU', height: 40.h),
                 IconButton(
                   icon: const Icon(Icons.language, color: AppColors.textMuted),
                   // TODO: open the language picker.
@@ -60,7 +62,7 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               height: _titleRow,
               color: AppColors.bg,
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: Row(
                 children: [
                   if (canPop)
@@ -69,11 +71,11 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
                       onPressed: () => Navigator.pop(context),
                     )
                   else
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                   Text(
                     title!,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: TextStyle(
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.text,
                     ),
@@ -94,8 +96,8 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
       height: height,
       errorBuilder: (_, __, ___) => Text(
         fallback,
-        style: const TextStyle(
-          fontSize: 13,
+        style: TextStyle(
+          fontSize: 13.sp,
           fontWeight: FontWeight.w700,
           color: AppColors.navy,
         ),

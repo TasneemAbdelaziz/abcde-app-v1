@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_theme.dart';
 import 'star_row.dart';
@@ -21,8 +22,8 @@ class RateSheet extends StatefulWidget {
     return showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
       builder: (_) => RateSheet(stageTitle: stageTitle),
     );
@@ -38,27 +39,27 @@ class _RateSheetState extends State<RateSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+      padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 28.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Navy heading.
           Text(
             'Rate: ${widget.stageTitle}',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.navy,
-              fontSize: 18,
+              fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           // Amber, tappable stars.
           StarRow(
             rating: _rating,
             size: 36,
             onTap: (value) => setState(() => _rating = value),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           // Blue primary button.
           SizedBox(
             width: double.infinity,

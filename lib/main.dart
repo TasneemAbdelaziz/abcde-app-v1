@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import 'core/repositories/patient_repository.dart';
@@ -64,7 +65,12 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VisitsVm(repo)),
         // TODO: register new ViewModels here.
       ],
-      child: MaterialApp(
+      // ScreenUtil makes every .w/.h/.sp/.r scale from this 390Ã844 baseline,
+      // so the UI looks right on any screen size.
+      child: ScreenUtilInit(
+        designSize: const Size(390, 844),
+        minTextAdapt: true,
+        builder: (context, child) => MaterialApp(
         title: 'Alamein Model Hospital — Patient Portal',
         theme: AppTheme.light(),
         debugShowCheckedModeBanner: false,
@@ -94,6 +100,7 @@ class AlameinApp extends StatelessWidget {
           Routes.diagnosis: (_) => const DiagnosisScreen(),
           Routes.medicines: (_) => const MedicinesScreen(),
         },
+      ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../routing/routes.dart';
 import 'alert_fab.dart';
@@ -45,8 +46,8 @@ class GlobalAlert {
               return const SizedBox.shrink();
             }
             return Positioned(
-              right: 16,
-              bottom: 84, // sits above the bottom nav, like the prototype
+              right: 16.w,
+              bottom: 84.h, // sits above the bottom nav, like the prototype
               child: SafeArea(
                 child: AlertFab(onTap: () => _emergencyOpen.value = true),
               ),

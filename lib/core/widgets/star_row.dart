@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_theme.dart';
 
@@ -10,6 +11,9 @@ import '../theme/app_theme.dart';
 class StarRow extends StatelessWidget {
   final int rating;
   final ValueChanged<int>? onTap;
+
+  /// Star size in DESIGN pixels (390Ã844 baseline). It is scaled with `.sp`
+  /// internally, so callers just pass plain numbers like 28 or 36.
   final double size;
 
   const StarRow({
@@ -29,7 +33,7 @@ class StarRow extends StatelessWidget {
         final icon = Icon(
           filled ? Icons.star : Icons.star_border,
           color: filled ? AppColors.amber : Colors.grey,
-          size: size,
+          size: size.sp,
         );
         if (onTap == null) return icon;
         return GestureDetector(

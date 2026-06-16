@@ -24,10 +24,10 @@ class DiagnosisScreen extends StatelessWidget {
                 // TODO: build UI.
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: vm.load,
-        child: const Icon(Icons.refresh),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: vm.load,
+      //   child: const Icon(Icons.refresh),
+      // ),
     );
   }
 }

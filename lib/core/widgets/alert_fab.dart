@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../theme/app_theme.dart';
 
@@ -73,20 +74,20 @@ class _AlertFabState extends State<AlertFab>
             final halo = BoxShadow(
               color: AlertFab._redDeep.withValues(alpha: 0.16 * t),
               blurRadius: 0,
-              spreadRadius: 8 * t,
+              spreadRadius: 8.r * t,
             );
 
             return Container(
-              width: 58,
-              height: 58,
+              width: 58.w,
+              height: 58.h,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [AlertFab._redLight, AlertFab._redDeep],
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: Colors.white, width: 3.w),
                 boxShadow: [baseShadow, halo],
               ),
               child: child,
@@ -94,31 +95,31 @@ class _AlertFabState extends State<AlertFab>
           },
           // Static contents (don't rebuild every animation tick).
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
+            padding: EdgeInsets.symmetric(horizontal: 2.w),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Full-colour siren image (no tint).
                 Image.asset(
                   'assets/icons/call.png',
-                  width: 26,
-                  height: 26,
+                  width: 26.w,
+                  height: 26.h,
                   // If the asset is ever missing, fall back to the drawn icon
                   // so the button never shows a broken-image box.
-                  errorBuilder: (context, error, stack) => const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CustomPaint(painter: _StethoscopePainter()),
+                  errorBuilder: (context, error, stack) => SizedBox(
+                    width: 24.w,
+                    height: 24.h,
+                    child: const CustomPaint(painter: _StethoscopePainter()),
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
+                SizedBox(height: 2.h),
+                Text(
                   'Call your doctor',
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 8,
+                    fontSize: 8.sp,
                     height: 1.05,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.1,
@@ -221,15 +222,15 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
         child: Container(
           color: const Color(0x8C142846), // rgba(20,40,70,.55)
           alignment: Alignment.center,
-          padding: const EdgeInsets.all(30),
+          padding: EdgeInsets.all(30.r),
           child: GestureDetector(
             onTap: () {}, // swallow taps on the card
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+              padding: EdgeInsets.fromLTRB(24.w, 32.h, 24.w, 24.h),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24.r),
                 border: Border.all(color: AppColors.border),
                 boxShadow: AppTheme.shadowLg,
               ),
@@ -242,18 +243,18 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
                     builder: (context, child) {
                       final t = math.sin(_ring.value * math.pi); // 0..1..0
                       return Container(
-                        width: 80,
-                        height: 80,
+                        width: 80.w,
+                        height: 80.h,
                         decoration: BoxDecoration(
                           color: const Color(0x24E5484D),
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.red, width: 3),
+                          border: Border.all(color: AppColors.red, width: 3.w),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.red
                                   .withValues(alpha: 0.4 * (1 - t)),
                               blurRadius: 0,
-                              spreadRadius: 20 * t,
+                              spreadRadius: 20.r * t,
                             ),
                           ],
                         ),
@@ -263,41 +264,42 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
                     child: Center(
                       child: Image.asset(
                         'assets/icons/call.png',
-                        width: 44,
-                        height: 44,
-                        errorBuilder: (context, error, stack) =>
-                            const Icon(Icons.notifications_active,
-                                color: AppColors.red, size: 36),
+                        width: 44.w,
+                        height: 44.h,
+                        errorBuilder: (context, error, stack) => Icon(
+                            Icons.notifications_active,
+                            color: AppColors.red,
+                            size: 36.sp),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16.h),
+                  Text(
                     'Alert Sent!',
                     style: TextStyle(
                       color: AppColors.navy,
-                      fontSize: 20,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8.h),
+                  Text(
                     'A nurse will arrive shortly',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.textMuted,
-                      fontSize: 14,
+                      fontSize: 14.sp,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.h),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: widget.onDismiss,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(14.r),
                         ),
                       ),
                       child: const Text('Dismiss'),
