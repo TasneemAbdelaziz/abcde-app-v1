@@ -1,104 +1,208 @@
-/// A patient's hospital visit, parsed from `GET /visits/#{serial}`.
+import 'visit_stage.dart';
+
+/// Whether a visit is still ongoing or finished. Only [active] visits can be
+/// opened to view their Care Journey timeline.
+enum VisitStatus { active, completed }
+
+/// One hospital visit shown in the "My Visits" list.
 ///
-/// Holds the care-journey state (current stage), admission info (arrival time,
-/// location/room), and the treating doctor & department. The `#` in the visit
-/// id is URL-encoded as `%23` by the repository.
+/// Active visits carry a [journey] (the stage-by-stage Care Journey timeline);
+/// completed visits carry a [rating] instead and have no journey.
 class Visit {
-  final String ticketNo;
-  final String arrivalType;
-  final DateTime? arrivedAt;
-  final String triageClassification;
-  final String currentStage; // e.g. 'diagnosis'
-  final String visitStatus; // e.g. 'open'
-  final String doctorName;
-  final String departmentName;
-  final String locationName; // e.g. 'Emergency Bay 2'
-  final String floor;
+  final String id;
+  final VisitStatus status;
+  final String title; // 'Acute coronary syndrome — catheterization'
+  final String doctorName; // 'Dr. Amira Fouad'
+  final String doctorInitials; // 'AF' (shown in the avatar circle)
+  final String department; // 'Cardiology · CCU'
+  final String dateLabel; // 'Jun 11, 2026 · 08:12'
+
+  // Active visits only -----------------------------------------------------
+  final int currentStage; // 5
+  final int totalStages; // 8
+  final String progressLabel; // 'in progress'
+
+  // Completed visits only --------------------------------------------------
+  final double rating; // 4.6 (0 when not applicable)
+
+  /// The Care Journey timeline. Non-null for active visits, null otherwise.
+  final VisitJourney? journey;
 
   const Visit({
-    required this.ticketNo,
-    required this.arrivalType,
-    required this.arrivedAt,
-    required this.triageClassification,
-    required this.currentStage,
-    required this.visitStatus,
+    required this.id,
+    required this.status,
+    required this.title,
     required this.doctorName,
-    required this.departmentName,
-    required this.locationName,
-    required this.floor,
+    required this.doctorInitials,
+    required this.department,
+    required this.dateLabel,
+    this.currentStage = 0,
+    this.totalStages = 0,
+    this.progressLabel = '',
+    this.rating = 0,
+    this.journey,
   });
 
-  factory Visit.fromJson(Map<String, dynamic> data) {
-    final doctor = data['doctor'];
-    final dept = data['department'];
-    final loc = data['location'];
-    String pick(dynamic obj, String key) =>
-        obj is Map<String, dynamic> ? (obj[key] ?? '').toString() : '';
+  bool get isActive => status == VisitStatus.active;
 
+  Visit copyWith({
+    VisitStatus? status,
+    String? title,
+    String? doctorName,
+    String? doctorInitials,
+    String? department,
+    String? dateLabel,
+    int? currentStage,
+    int? totalStages,
+    String? progressLabel,
+    double? rating,
+    VisitJourney? journey,
+  }) {
     return Visit(
-      ticketNo: (data['ticket_no'] ?? '').toString(),
-      arrivalType: (data['arrival_type'] ?? '').toString(),
-      arrivedAt: DateTime.tryParse((data['arrived_at'] ?? '').toString()),
-      triageClassification: (data['triage_classification'] ?? '').toString(),
-      currentStage: (data['current_stage'] ?? '').toString(),
-      visitStatus: (data['visit_status'] ?? '').toString(),
-      doctorName: pick(doctor, 'full_name'),
-      departmentName: pick(dept, 'department_name'),
-      locationName: pick(loc, 'location_name'),
-      floor: pick(loc, 'floor'),
+      id: id,
+      status: status ?? this.status,
+      title: title ?? this.title,
+      doctorName: doctorName ?? this.doctorName,
+      doctorInitials: doctorInitials ?? this.doctorInitials,
+      department: department ?? this.department,
+      dateLabel: dateLabel ?? this.dateLabel,
+      currentStage: currentStage ?? this.currentStage,
+      totalStages: totalStages ?? this.totalStages,
+      progressLabel: progressLabel ?? this.progressLabel,
+      rating: rating ?? this.rating,
+      journey: journey ?? this.journey,
     );
   }
 
-  /// The care-journey stage as (1-based index, total, pretty title).
-  ///
-  /// The backend sends `current_stage` as a key (e.g. 'diagnosis'). We map it
-  /// against this canonical ED → cardiac pathway. If the key isn't known we
-  /// return index 0 and just show the prettified key.
-  /// NOTE: adjust [_stages] if the backend's stage enum differs.
-  CareStage get stage {
-    final i = _stages.indexWhere((s) => s.$1 == currentStage.toLowerCase());
-    if (i < 0) {
-      final pretty = currentStage.isEmpty
-          ? '—'
-          : currentStage[0].toUpperCase() + currentStage.substring(1);
-      return CareStage(index: 0, total: _stages.length, title: pretty);
-    }
-    return CareStage(
-      index: i + 1,
-      total: _stages.length,
-      title: _stages[i].$2,
-    );
+  /// Sample visits used while there is no backend.
+  /// TODO: replace with data from the API once it exists.
+  static List<Visit> mockList() {
+    return [
+      const Visit(
+        id: 'visit-001',
+        status: VisitStatus.active,
+        title: 'Acute coronary syndrome — catheterization',
+        doctorName: 'Dr. Abu Bakr Al-Fahham',
+        doctorInitials: 'AB',
+        department: 'Cardiology · CCU',
+        dateLabel: 'Jun 11, 2026 · 08:12',
+        currentStage: 5,
+        totalStages: 8,
+        progressLabel: 'in progress',
+        journey: VisitJourney(
+          visitCode: 'ALM-20413',
+          pathway: 'Cardiac pathway',
+          patientName: 'Ahmed Al-Rashid',
+          condition: 'Acute coronary syndrome',
+          admitted: 'Admitted Jun 11, 2026',
+          stages: [
+            VisitStage(
+              id: 'st-1',
+              title: 'Arrival & Registration',
+              status: 'done',
+              rating: 5,
+              time: '08:12',
+              detail: 'Reception desk',
+            ),
+            VisitStage(
+              id: 'st-2',
+              title: 'Triage Assessment',
+              status: 'done',
+              rating: 4,
+              time: '08:20',
+              detail: 'Emergency nurse',
+            ),
+            VisitStage(
+              id: 'st-3',
+              title: 'Diagnosis',
+              status: 'done',
+              time: '08:45',
+              detail: 'ECG & cardiac enzymes',
+            ),
+            VisitStage(
+              id: 'st-4',
+              title: 'Catheterization',
+              status: 'done',
+              time: '10:05',
+              detail: 'Cath Lab 2',
+            ),
+            VisitStage(
+              id: 'st-5',
+              title: 'Recovery & Monitoring',
+              status: 'current',
+              detail: 'Coronary Care Unit · in progress',
+            ),
+            VisitStage(
+              id: 'st-6',
+              title: 'Ward Admission',
+              status: 'upcoming',
+              detail: 'Estimated this afternoon',
+            ),
+            VisitStage(
+              id: 'st-7',
+              title: 'Discharge Planning',
+              status: 'upcoming',
+              detail: 'Pending',
+            ),
+            VisitStage(
+              id: 'st-8',
+              title: 'Home Follow-up',
+              status: 'upcoming',
+              detail: 'Pending',
+            ),
+          ],
+        ),
+      ),
+      const Visit(
+        id: 'visit-002',
+        status: VisitStatus.completed,
+        title: 'Hypertension follow-up',
+        doctorName: 'Dr. Hassan Saad',
+        doctorInitials: 'HS',
+        department: 'Cardiology',
+        dateLabel: 'Feb 14, 2026',
+        rating: 4.6,
+      ),
+      const Visit(
+        id: 'visit-003',
+        status: VisitStatus.completed,
+        title: 'Routine cardiac check-up',
+        doctorName: 'Dr. Amira Fouad',
+        doctorInitials: 'AF',
+        department: 'Cardiology',
+        dateLabel: 'Nov 3, 2025',
+        rating: 5.0,
+      ),
+    ];
   }
-
-  // Confirmed valid `current_stage` values from the backend: diagnosis, cath,
-  // recovery, discharge (registration/triage assumed at the start of the flow).
-  /// Pretty English name for a stage code (e.g. 'cath' → 'Catheterization').
-  /// Used by notifications that carry a `{stage}` payload.
-  static String prettyStage(String code) {
-    final i = _stages.indexWhere((s) => s.$1 == code.toLowerCase());
-    if (i >= 0) return _stages[i].$2;
-    if (code.isEmpty) return '';
-    return code[0].toUpperCase() + code.substring(1);
-  }
-
-  static const List<(String, String)> _stages = [
-    ('registration', 'Registration'),
-    ('triage', 'Triage'),
-    ('diagnosis', 'Diagnosis'),
-    ('cath', 'Catheterization'),
-    ('recovery', 'Recovery & Monitoring'),
-    ('discharge', 'Discharge'),
-  ];
 }
 
-/// Where the patient is in their care journey.
-class CareStage {
-  final int index; // 1-based; 0 if unknown
-  final int total;
-  final String title;
-  const CareStage({
-    required this.index,
-    required this.total,
-    required this.title,
+/// The Care Journey for an active visit: a header plus the ordered stages.
+class VisitJourney {
+  final String visitCode; // 'ALM-20413'
+  final String pathway; // 'Cardiac pathway'
+  final String patientName; // 'Ahmed Al-Rashid'
+  final String condition; // 'Acute coronary syndrome'
+  final String admitted; // 'Admitted Jun 11, 2026'
+  final List<VisitStage> stages;
+
+  const VisitJourney({
+    required this.visitCode,
+    required this.pathway,
+    required this.patientName,
+    required this.condition,
+    required this.admitted,
+    required this.stages,
   });
+
+  VisitJourney copyWith({List<VisitStage>? stages}) {
+    return VisitJourney(
+      visitCode: visitCode,
+      pathway: pathway,
+      patientName: patientName,
+      condition: condition,
+      admitted: admitted,
+      stages: stages ?? this.stages,
+    );
+  }
 }

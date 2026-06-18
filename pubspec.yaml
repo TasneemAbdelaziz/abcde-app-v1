@@ -58,6 +58,9 @@ dependencies:
   mobile_scanner: 5.2.3
   shared_preferences: ^2.5.5
 
+  # Plays the local diagnosis videos bundled under assets/videos/.
+  video_player: ^2.9.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -86,7 +89,9 @@ flutter:
   #   assets/images/aiu_logo.png       (AIU)
   assets:
     - assets/images/
+    - assets/images/meds/
     - assets/icons/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

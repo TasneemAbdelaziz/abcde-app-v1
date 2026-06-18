@@ -5,11 +5,16 @@ class Medicine {
   final String dose; // e.g. '500 mg'
   final String schedule; // e.g. 'Twice a day'
 
+  /// Optional product-photo asset, e.g. 'assets/images/meds/aspirin.png'.
+  /// Falls back to a pill icon if the file isn't there yet.
+  final String photoAsset;
+
   const Medicine({
     required this.id,
     required this.name,
     required this.dose,
     required this.schedule,
+    this.photoAsset = '',
   });
 
   Medicine copyWith({
@@ -17,12 +22,14 @@ class Medicine {
     String? name,
     String? dose,
     String? schedule,
+    String? photoAsset,
   }) {
     return Medicine(
       id: id ?? this.id,
       name: name ?? this.name,
       dose: dose ?? this.dose,
       schedule: schedule ?? this.schedule,
+      photoAsset: photoAsset ?? this.photoAsset,
     );
   }
 

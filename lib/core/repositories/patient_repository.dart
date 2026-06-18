@@ -1,6 +1,9 @@
+import '../models/diagnosis.dart';
 import '../models/medicine.dart';
 import '../models/patient.dart';
 import '../models/report.dart';
+import '../models/treatment.dart';
+import '../models/visit.dart';
 import '../models/visit_stage.dart';
 import '../models/vital.dart';
 
@@ -39,15 +42,9 @@ class PatientRepository {
     ];
   }
 
-  /// Past and upcoming hospital visits.
-  List<String> getVisits() {
-    // TODO: model visits with a proper class if they grow more fields.
-    return const [
-      'Cardiology â 2026-06-12 10:00',
-      'Radiology â 2026-06-14 09:30',
-      'Follow-up â 2026-06-20 11:00',
-    ];
-  }
+  /// The patient's visits (one active, the rest completed). The active visit
+  /// carries its Care Journey timeline.
+  List<Visit> getVisits() => Visit.mockList();
 
   /// Lab reports and medical documents.
   List<Report> getReports() {
@@ -58,21 +55,20 @@ class PatientRepository {
     ];
   }
 
-  /// Prescribed medicines.
+  /// Prescribed medicines (with optional product photos).
   List<Medicine> getMedicines() {
     return const [
-      Medicine(id: 'm-001', name: 'Aspirin', dose: '81 mg', schedule: 'Once daily Â· after breakfast'),
-      Medicine(id: 'm-002', name: 'Atorvastatin', dose: '40 mg', schedule: 'Once daily Â· evening'),
-      Medicine(id: 'm-003', name: 'Clopidogrel', dose: '75 mg', schedule: 'Once daily Â· morning'),
+      Medicine(id: 'm-001', name: 'Aspirin', dose: '81 mg', schedule: 'Once daily · after breakfast', photoAsset: 'assets/images/meds/aspirin.jpeg'),
+      Medicine(id: 'm-002', name: 'Atorvastatin', dose: '40 mg', schedule: 'Once daily · evening', photoAsset: 'assets/images/meds/atorvastatin.jpeg'),
+      Medicine(id: 'm-003', name: 'Clopidogrel', dose: '75 mg', schedule: 'Once daily · morning', photoAsset: 'assets/images/meds/clopidogrel.jpeg'),
     ];
   }
 
-  /// The current diagnosis text / list of findings.
-  List<String> getDiagnosis() {
-    return const [
-      'Acute coronary syndrome (resolving)',
-      'Mild hypertension',
-      // TODO: add structured diagnosis fields when available.
-    ];
-  }
+  /// The current diagnosis: headline condition, explainer + prevention videos,
+  /// and the plain-language summary shown on the Diagnosis screen.
+  Diagnosis getDiagnosis() => Diagnosis.fromMock();
+
+  /// The full treatment plan: recovery progress, explainer videos, today's
+  /// medicine timeline, goals, and upcoming appointments.
+  TreatmentPlan getTreatment() => TreatmentPlan.fromMock();
 }
