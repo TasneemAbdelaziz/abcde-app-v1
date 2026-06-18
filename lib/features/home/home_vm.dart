@@ -1,36 +1,80 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/models/patient.dart';
+import '../../core/models/patient_profile.dart';
+import '../../core/models/visit.dart';
 import '../../core/models/vital.dart';
-import '../../core/repositories/patient_repository.dart';
+import '../../core/models/vitals_reading.dart';
+import '../../core/network/api_client.dart';
+import '../../core/repositories/patient_api_repository.dart';
 
 /// ViewModel for the Home screen.
 ///
-/// Holds everything the Home widget displays: the patient, their vitals, and
-/// a short care-journey summary. The widget only reads these â it never does
-/// logic or calls the repository itself.
+/// Loads everything the design needs straight from the backend:
+///   - profile      → `GET /patients/{serial}`         (name, age, gender, …)
+///   - visit        → `GET /visits/#{serial}`          (care-journey stage,
+///                                                       admission, room, doctor)
+///   - latestVitals → `GET /visits/#{serial}/vitals`   (heart rate, SpO₂, …)
+///   - unread       → `GET /notifications`             (bell badge)
+///
+/// Only the "Est. discharge" date has no backend field yet, so that single chip
+/// shows the visit status instead.
 class HomeVm extends ChangeNotifier {
-  final PatientRepository _repo;
+  final PatientApiRepository _repo;
 
-  HomeVm(this._repo) {
-    load(); // mock data is instant, so load straight away
-  }
+  // NOTE: we do NOT load() in the constructor. The provider may build this VM
+  // before login (so there'd be no auth token yet → "Unauthenticated"). The
+  // Home screen calls load() when it appears, by which point we're signed in.
+  HomeVm(this._repo);
 
   bool loading = false;
-  Patient? patient;
-  List<Vital> vitals = [];
-  String journeySummary = '';
+  String? error;
+
+  PatientProfile? profile;
+  Visit? visit;
+  VitalsReading? latestVitals;
+  int unreadNotifications = 0;
+
+  /// The vital-sign strip. Empty until [latestVitals] arrives.
+  List<Vital> get vitals => latestVitals?.toVitals() ?? const [];
+  bool get hasVitals => latestVitals != null;
 
   Future<void> load() async {
     loading = true;
+    error = null;
     notifyListeners();
 
-    patient = _repo.getPatient();
-    vitals = _repo.getVitals();
-    journeySummary = _repo.getJourneySummary();
+    try {
+      final serial = await _repo.getMySerial();
+      if (serial.isEmpty) {
+        // Signed in but not a patient (e.g. a doctor account).
+        error = 'No patient record for this account.';
+        return;
+      }
 
-    loading = false;
-    notifyListeners();
-    // TODO: handle errors once the repo can fail.
+      profile = await _repo.getPatient(serial);
+      // Visit + vitals are optional: a patient may have no open visit.
+      visit = await _safe<Visit?>(() => _repo.getVisit(serial));
+      latestVitals =
+          await _safe<VitalsReading?>(() => _repo.getLatestVitals(serial));
+      unreadNotifications =
+          await _safe<int>(() => _repo.getUnreadCount()) ?? 0;
+    } on ApiException catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = 'Could not load your data. Pull to refresh.';
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Runs [action], swallowing errors to null so one optional call can't blank
+  /// the whole page.
+  Future<T?> _safe<T>(Future<T> Function() action) async {
+    try {
+      return await action();
+    } catch (_) {
+      return null;
+    }
   }
 }

@@ -26,7 +26,11 @@ class GlobalAlert {
   static final ValueNotifier<bool> _emergencyOpen = ValueNotifier<bool>(false);
 
   /// Routes where the FAB must NOT appear.
-  static const Set<String> _hiddenOn = {Routes.onboarding, Routes.login};
+  static const Set<String> _hiddenOn = {
+    Routes.splash,
+    Routes.onboarding,
+    Routes.login,
+  };
 
   /// Add this to `MaterialApp.navigatorObservers`.
   static final NavigatorObserver observer = _RouteTracker(_route);
@@ -70,21 +74,29 @@ class GlobalAlert {
   }
 }
 
-/// Keeps [_route] in sync with whatever route is currently on top.
+/// Keeps [_route] in sync with whatever *screen* is currently on top.
+///
+/// Only real screens ([PageRoute]) count. Popups like dialogs and bottom sheets
+/// (the language picker, logout confirm) push nameless [PopupRoute]s — if we
+/// tracked those we'd wrongly think we left login and pop the FAB back up.
 class _RouteTracker extends NavigatorObserver {
   final ValueNotifier<String?> _route;
 
   _RouteTracker(this._route);
 
   @override
-  void didPush(Route route, Route? previousRoute) =>
-      _route.value = route.settings.name;
+  void didPush(Route route, Route? previousRoute) {
+    if (route is PageRoute) _route.value = route.settings.name;
+  }
 
   @override
-  void didReplace({Route? newRoute, Route? oldRoute}) =>
-      _route.value = newRoute?.settings.name;
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    if (newRoute is PageRoute) _route.value = newRoute.settings.name;
+  }
 
   @override
-  void didPop(Route route, Route? previousRoute) =>
-      _route.value = previousRoute?.settings.name;
+  void didPop(Route route, Route? previousRoute) {
+    // Only react when a real screen is popped; ignore closing a popup/sheet.
+    if (route is PageRoute) _route.value = previousRoute?.settings.name;
+  }
 }

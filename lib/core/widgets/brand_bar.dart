@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
+import '../i18n/language_sheet.dart';
+import '../notifications/notification_center.dart';
+import '../repositories/auth_repository.dart';
+import '../routing/routes.dart';
 import '../theme/app_theme.dart';
 
 /// The fixed brand bar shown at the top of EVERY screen.
@@ -51,9 +56,15 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
                 _logo('assets/images/aiu_logo.png', 'AIU', height: 40.h),
                 IconButton(
                   icon: const Icon(Icons.language, color: AppColors.textMuted),
-                  // TODO: open the language picker.
-                  onPressed: () {},
+                  tooltip: 'Language',
+                  onPressed: () => showLanguageSheet(context),
                 ),
+                if (context.read<AuthRepository>().isLoggedIn)
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: AppColors.textMuted),
+                    tooltip: 'Log out',
+                    onPressed: () => _confirmLogout(context),
+                  ),
               ],
             ),
           ),
@@ -86,6 +97,39 @@ class BrandBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
     );
+  }
+
+  /// Asks the user to confirm, then signs out and returns to the login screen,
+  /// clearing the navigation stack so Back can't reopen the app.
+  Future<void> _confirmLogout(BuildContext context) async {
+    final auth = context.read<AuthRepository>();
+    final notifications = context.read<NotificationCenter>();
+    final navigator = Navigator.of(context);
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.red),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    notifications.stop(); // stop polling for this user
+    await auth.logout();
+    navigator.pushNamedAndRemoveUntil(Routes.login, (_) => false);
   }
 
   /// Shows the logo image, falling back to styled text if the PNG is missing,

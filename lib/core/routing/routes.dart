@@ -15,6 +15,7 @@ class Routes {
   static const String reports = '/reports';
 
   // Beginner 1 — STATIC screens.
+  static const String splash = '/splash';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String notifications = '/notifications';
