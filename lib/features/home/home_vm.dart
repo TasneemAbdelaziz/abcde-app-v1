@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/models/patient_profile.dart';
-import '../../core/models/visit.dart';
+import '../../core/models/patient_visit.dart';
 import '../../core/models/vital.dart';
 import '../../core/models/vitals_reading.dart';
 import '../../core/network/api_client.dart';
@@ -30,7 +30,7 @@ class HomeVm extends ChangeNotifier {
   String? error;
 
   PatientProfile? profile;
-  Visit? visit;
+  PatientVisit? visit;
   VitalsReading? latestVitals;
   int unreadNotifications = 0;
 
@@ -53,7 +53,7 @@ class HomeVm extends ChangeNotifier {
 
       profile = await _repo.getPatient(serial);
       // Visit + vitals are optional: a patient may have no open visit.
-      visit = await _safe<Visit?>(() => _repo.getVisit(serial));
+      visit = await _safe<PatientVisit?>(() => _repo.getVisit(serial));
       latestVitals =
           await _safe<VitalsReading?>(() => _repo.getLatestVitals(serial));
       unreadNotifications =

@@ -1,6 +1,6 @@
 import '../models/app_notification.dart';
 import '../models/patient_profile.dart';
-import '../models/visit.dart';
+import '../models/patient_visit.dart';
 import '../models/vitals_reading.dart';
 import '../network/api_client.dart';
 
@@ -42,11 +42,11 @@ class PatientApiRepository {
   }
 
   /// The patient's current visit, or null if they have none.
-  Future<Visit?> getVisit(String serial) async {
+  Future<PatientVisit?> getVisit(String serial) async {
     try {
       final res = await _api.getJson('/visits/%23$serial');
       final data = res['data'];
-      if (data is Map<String, dynamic>) return Visit.fromJson(data);
+      if (data is Map<String, dynamic>) return PatientVisit.fromJson(data);
       return null;
     } on ApiException catch (e) {
       if (e.statusCode == 404) return null; // no open visit
