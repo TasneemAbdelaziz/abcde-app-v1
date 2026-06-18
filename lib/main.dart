@@ -74,8 +74,8 @@ class AlameinApp extends StatelessWidget {
         title: 'Alamein Model Hospital — Patient Portal',
         theme: AppTheme.light(),
         debugShowCheckedModeBanner: false,
-        initialRoute: Routes.home,
-        // Track the top route (so the alert FAB can hide on login/onboarding)...
+        initialRoute: Routes.treatment, // TODO: change to Routes.onboarding for production.
+        // Track the top route (so the alert FAB cٌan hide on login/onboarding)...
         navigatorObservers: [GlobalAlert.observer],
         // ...and overlay the floating "Call your doctor" button on every screen.
         builder: GlobalAlert.wrap,

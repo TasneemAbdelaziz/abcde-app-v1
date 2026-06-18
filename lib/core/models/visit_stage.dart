@@ -6,11 +6,19 @@ class VisitStage {
   final String status; // e.g. 'done', 'current', 'upcoming'
   final int rating; // 0..5 stars, 0 = not rated yet
 
+  /// Optional timestamp shown next to the stage, e.g. '08:12'. Empty if none.
+  final String time;
+
+  /// Optional one-line detail, e.g. 'Reception desk', 'Pending'. Empty if none.
+  final String detail;
+
   const VisitStage({
     required this.id,
     required this.title,
     required this.status,
     this.rating = 0,
+    this.time = '',
+    this.detail = '',
   });
 
   VisitStage copyWith({
@@ -18,12 +26,16 @@ class VisitStage {
     String? title,
     String? status,
     int? rating,
+    String? time,
+    String? detail,
   }) {
     return VisitStage(
       id: id ?? this.id,
       title: title ?? this.title,
       status: status ?? this.status,
       rating: rating ?? this.rating,
+      time: time ?? this.time,
+      detail: detail ?? this.detail,
     );
   }
 

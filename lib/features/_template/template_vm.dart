@@ -20,7 +20,7 @@ class TemplateVm extends ChangeNotifier {
     notifyListeners();
 
     // Call a repository method here. (Using getVisits just as an example.)
-    items = _repo.getVisits();
+    items = _repo.getVisits().map((v) => v.title).toList();
 
     loading = false;
     notifyListeners();
