@@ -1,4 +1,5 @@
 import '../models/app_notification.dart';
+import '../models/entertainment_video.dart';
 import '../models/patient_profile.dart';
 import '../models/visit.dart';
 import '../models/vitals_reading.dart';
@@ -101,6 +102,21 @@ class PatientApiRepository {
   /// Marks one notification read: `POST /notifications/{id}/read`.
   Future<void> markNotificationRead(String id) async {
     await _api.postJson('/notifications/$id/read', const {});
+  }
+
+  /// Entertainment videos.
+  ///
+  /// TODO: point this to the real backend endpoint once it exists.
+  Future<List<EntertainmentVideo>> getEntertainmentVideos() async {
+    final res = await _api.getJson('/entertainment/videos');
+    final data = res['data'];
+    if (data is List) {
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(EntertainmentVideo.fromJson)
+          .toList();
+    }
+    return [];
   }
 
   int _unreadOf(dynamic data) {
