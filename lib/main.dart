@@ -9,15 +9,15 @@ import 'core/notifications/local_notifications.dart';
 import 'core/notifications/notification_center.dart';
 import 'core/repositories/auth_repository.dart';
 import 'core/repositories/patient_api_repository.dart';
-import 'core/repositories/patient_repository.dart';
 import 'core/repositories/patient_care_api_repository.dart';
+import 'core/repositories/patient_repository.dart';
 import 'core/routing/routes.dart';
 import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/global_alert_overlay.dart';
 import 'features/login/login_vm.dart';
 
-// The shell holds the five tabs (Home Â· Visits Â· AI Advisor Â· Reports Â· Family)
+// The shell holds the five tabs (Home · Visits · AI Advisor · Reports · Family)
 // with a fixed bottom nav. Detail screens below are pushed on top.
 import 'features/shell/main_shell.dart';
 
@@ -26,6 +26,7 @@ import 'features/development/development_screen.dart';
 import 'features/diagnosis/diagnosis_screen.dart';
 import 'features/diagnosis/diagnosis_vm.dart';
 import 'features/entertainment/entertainment_screen.dart';
+import 'features/family/family_vm.dart';
 import 'features/home/home_vm.dart';
 import 'features/journey/journey_screen.dart';
 import 'features/journey/journey_vm.dart';
@@ -60,7 +61,7 @@ void main() async {
 /// Root widget.
 ///
 /// Dependency injection happens here with `provider`:
-///   - ONE shared [PatientRepository] (created once).
+///   - shared repositories (created once), and
 ///   - ONE ChangeNotifierProvider per [DATA] screen ViewModel.
 ///
 /// When you add a new DATA screen, add its `*_vm` to this list and add its
@@ -70,29 +71,39 @@ class AlameinApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The single repository instance shared by every ViewModel.
+    // The mock data source still used by a few screens.
     final repo = PatientRepository();
 
     // Networking + auth: one shared HTTP client; AuthRepository stores the
     // bearer token on it after a successful login.
     final api = ApiClient();
     final auth = AuthRepository(api);
-    final patientApi = PatientApiRepository(api);
-    final careApi = PatientCareApiRepository(api);   // 'api' is the shared ApiClient
-    Provider<PatientApiRepository>.value(value: patientApi);
-    Provider<PatientCareApiRepository>.value(value: careApi);  // ← add this
+    final patientApi = PatientApiRepository(api); // home / notifications
+    final careApi = PatientCareApiRepository(api); // diagnosis / meds / visits
 
     // Language + the background notification poller (started after login).
     final locale = LocaleController();
     final notifications = NotificationCenter(patientApi, locale);
 
+    // If the server ever rejects our token (401), drop the session and bounce
+    // to login instead of leaving the user stuck on an "Unauthenticated" page.
+    api.onUnauthorized = () {
+      auth.currentSession = null;
+      api.token = null;
+      AppPrefs.clearAuthToken();
+      notifications.stop();
+      rootNavigatorKey.currentState
+          ?.pushNamedAndRemoveUntil(Routes.login, (_) => false);
+    };
+
     return MultiProvider(
       providers: [
-        // The data source. `.value` because we made it above.
+        // Shared repositories.
         Provider<PatientRepository>.value(value: repo),
         Provider<ApiClient>.value(value: api),
         Provider<AuthRepository>.value(value: auth),
         Provider<PatientApiRepository>.value(value: patientApi),
+        Provider<PatientCareApiRepository>.value(value: careApi),
 
         // App language (globe picker). Drives MaterialApp.locale below.
         ChangeNotifierProvider<LocaleController>.value(value: locale),
@@ -106,17 +117,18 @@ class AlameinApp extends StatelessWidget {
         // Notifications list (reads the shared patient API repo).
         ChangeNotifierProvider(create: (_) => NotificationsVm(patientApi)),
 
-        // One ViewModel per DATA screen. Each reads the shared repo.
+        // One ViewModel per DATA screen.
         ChangeNotifierProvider(create: (_) => HomeVm(patientApi)),
         ChangeNotifierProvider(create: (_) => TreatmentVm(repo)),
         ChangeNotifierProvider(create: (_) => JourneyVm(repo)),
         ChangeNotifierProvider(create: (_) => ReportsVm(repo)),
-       ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),   // was repo
-       ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),   // was repo
-        ChangeNotifierProvider(create: (_) => VisitsVm(careApi)),      // was repo
+        ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),
+        ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),
+        ChangeNotifierProvider(create: (_) => VisitsVm(careApi)),
+        ChangeNotifierProvider(create: (_) => FamilyVm()),
         // TODO: register new ViewModels here.
       ],
-      // ScreenUtil makes every .w/.h/.sp/.r scale from this 390Ã844 baseline,
+      // ScreenUtil makes every .w/.h/.sp/.r scale from this 390×844 baseline,
       // so the UI looks right on any screen size.
       child: ScreenUtilInit(
         designSize: const Size(390, 844),
@@ -125,56 +137,51 @@ class AlameinApp extends StatelessWidget {
         // switches language from the globe picker.
         builder: (context, child) => Consumer<LocaleController>(
           builder: (context, localeCtrl, _) => MaterialApp(
-        title: 'Alamein Model Hospital — Patient Portal',
-        theme: AppTheme.light(),
-        debugShowCheckedModeBanner: false,
-        // So a tapped notification can navigate from outside the widget tree.
-        navigatorKey: rootNavigatorKey,
-        // Localization: current language + the delegates that translate
-        // built-in Material/Cupertino widgets and set text direction (RTL for
-        // Arabic). Supported languages come from LocaleController.
-        locale: localeCtrl.locale,
-        supportedLocales: LocaleController.supportedLocales,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        // Splash (logo) â onboarding carousel â login â home.
-        initialRoute: Routes.splash,
-        //     initialRoute: Routes.onboarding,
-        // Track the top route (so the alert FAB can hide on login/onboarding)...
-        // initialRoute: Routes.treatment, // TODO: change to Routes.onboarding for production.
-        // Track the top route (so the alert FAB cٌan hide on login/onboarding)...
-        navigatorObservers: [GlobalAlert.observer],
-        // ...and overlay the floating "Call your doctor" button on every screen.
-        builder: GlobalAlert.wrap,
-        routes: {
-          // The five tabs all open the shell on the matching tab. The shell's
-          // fixed bottom nav handles switching between them after that.
-          Routes.home: (_) => const MainShell(initialIndex: 0),
-          Routes.visits: (_) => const MainShell(initialIndex: 1),
-          Routes.aiAdvisor: (_) => const MainShell(initialIndex: 2),
-          Routes.reports: (_) => const MainShell(initialIndex: 3),
-          Routes.family: (_) => const MainShell(initialIndex: 4),
+            title: 'Alamein Model Hospital — Patient Portal',
+            theme: AppTheme.light(),
+            debugShowCheckedModeBanner: false,
+            // So a tapped notification can navigate from outside the tree.
+            navigatorKey: rootNavigatorKey,
+            // Localization: current language + the delegates that translate
+            // built-in widgets and set text direction (RTL for Arabic).
+            locale: localeCtrl.locale,
+            supportedLocales: LocaleController.supportedLocales,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            // Splash (logo) → onboarding carousel → login → home.
+            initialRoute: Routes.splash,
+            // Track the top route (so the alert FAB can hide on login/...)...
+            navigatorObservers: [GlobalAlert.observer],
+            // ...and overlay the floating "Call your doctor" button.
+            builder: GlobalAlert.wrap,
+            routes: {
+              // The five tabs all open the shell on the matching tab.
+              Routes.home: (_) => const MainShell(initialIndex: 0),
+              Routes.visits: (_) => const MainShell(initialIndex: 1),
+              Routes.aiAdvisor: (_) => const MainShell(initialIndex: 2),
+              Routes.reports: (_) => const MainShell(initialIndex: 3),
+              Routes.family: (_) => const MainShell(initialIndex: 4),
 
-          // Splash + onboarding (the entry flow).
-          Routes.splash: (_) => const SplashScreen(),
+              // Entry flow.
+              Routes.splash: (_) => const SplashScreen(),
+              Routes.onboarding: (_) => const OnboardingScreen(),
+              Routes.login: (_) => const LoginScreen(),
 
-          // Detail screens (pushed on top of the shell).
-          Routes.treatment: (_) => const TreatmentScreen(),
-          Routes.journey: (_) => const JourneyScreen(),
-          Routes.onboarding: (_) => const OnboardingScreen(),
-          Routes.login: (_) => const LoginScreen(),
-          Routes.notifications: (_) => const NotificationsScreen(),
-          Routes.profile: (_) => const ProfileScreen(),
-          Routes.entertainment: (_) => const EntertainmentScreen(),
-          Routes.development: (_) => const DevelopmentScreen(),
-          Routes.diagnosis: (_) => const DiagnosisScreen(),
-          Routes.medicines: (_) => const MedicinesScreen(),
-        },
-      ),
-      ),
+              // Detail screens (pushed on top of the shell).
+              Routes.treatment: (_) => const TreatmentScreen(),
+              Routes.journey: (_) => const JourneyScreen(),
+              Routes.notifications: (_) => const NotificationsScreen(),
+              Routes.profile: (_) => const ProfileScreen(),
+              Routes.entertainment: (_) => const EntertainmentScreen(),
+              Routes.development: (_) => const DevelopmentScreen(),
+              Routes.diagnosis: (_) => const DiagnosisScreen(),
+              Routes.medicines: (_) => const MedicinesScreen(),
+            },
+          ),
+        ),
       ),
     );
   }

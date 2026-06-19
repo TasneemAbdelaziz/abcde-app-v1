@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/widgets/bottom_nav.dart';
+import '../../core/widgets/global_alert_overlay.dart';
 import '../ai_advisor/ai_advisor_screen.dart';
 import '../family/family_screen.dart';
 import '../home/home_screen.dart';
@@ -29,6 +30,21 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   late int _index = widget.initialIndex;
 
+  @override
+  void initState() {
+    super.initState();
+    GlobalAlert.updateTab(_index);
+  }
+
+  @override
+  void didUpdateWidget(covariant MainShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialIndex != widget.initialIndex) {
+      _index = widget.initialIndex;
+      GlobalAlert.updateTab(_index);
+    }
+  }
+
   // The five tab pages, in the same order as the bottom-nav tabs.
   static const List<Widget> _pages = [
     HomeScreen(),
@@ -44,7 +60,10 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: AppBottomNav(
         currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
+        onTap: (i) {
+          setState(() => _index = i);
+          GlobalAlert.updateTab(i);
+        },
       ),
     );
   }

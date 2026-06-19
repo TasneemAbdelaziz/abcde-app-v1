@@ -28,6 +28,7 @@ class AuthRepository {
     if (token == null || token.isEmpty) return false;
 
     _api.token = token;
+    _api.suppressAuthRedirect = true; // splash handles routing on failure
     try {
       final res = await _api.getJson('/auth/me');
       final data = res['data'];
@@ -38,6 +39,8 @@ class AuthRepository {
       }
     } catch (_) {
       // Token expired / invalid / network down — fall through and clear it.
+    } finally {
+      _api.suppressAuthRedirect = false;
     }
     _api.token = null;
     currentSession = null;

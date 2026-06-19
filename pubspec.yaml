@@ -61,6 +61,9 @@ dependencies:
   # Plays the local diagnosis videos bundled under assets/videos/.
   video_player: ^2.9.2
 
+  # Camera & image picker for QR code scanning.
+  image_picker: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
