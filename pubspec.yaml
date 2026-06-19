@@ -46,6 +46,9 @@ dependencies:
   # main.dart). Use .w / .h / .sp / .r on numbers instead of hardcoding px.
   flutter_screenutil: ^5.9.3
 
+  # Camera & image picker for QR code scanning.
+  image_picker: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

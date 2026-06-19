@@ -25,6 +25,7 @@ import 'features/medicines/medicines_vm.dart';
 import 'features/notifications/notifications_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/family/family_vm.dart';
 import 'features/reports/reports_vm.dart';
 import 'features/treatment/treatment_screen.dart';
 import 'features/treatment/treatment_vm.dart';
@@ -63,6 +64,7 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DiagnosisVm(repo)),
         ChangeNotifierProvider(create: (_) => MedicinesVm(repo)),
         ChangeNotifierProvider(create: (_) => VisitsVm(repo)),
+        ChangeNotifierProvider(create: (_) => FamilyVm()),
         // TODO: register new ViewModels here.
       ],
       // ScreenUtil makes every .w/.h/.sp/.r scale from this 390Ã844 baseline,
@@ -71,36 +73,36 @@ class AlameinApp extends StatelessWidget {
         designSize: const Size(390, 844),
         minTextAdapt: true,
         builder: (context, child) => MaterialApp(
-        title: 'Alamein Model Hospital — Patient Portal',
-        theme: AppTheme.light(),
-        debugShowCheckedModeBanner: false,
-        initialRoute: Routes.home,
-        // Track the top route (so the alert FAB can hide on login/onboarding)...
-        navigatorObservers: [GlobalAlert.observer],
-        // ...and overlay the floating "Call your doctor" button on every screen.
-        builder: GlobalAlert.wrap,
-        routes: {
-          // The five tabs all open the shell on the matching tab. The shell's
-          // fixed bottom nav handles switching between them after that.
-          Routes.home: (_) => const MainShell(initialIndex: 0),
-          Routes.visits: (_) => const MainShell(initialIndex: 1),
-          Routes.aiAdvisor: (_) => const MainShell(initialIndex: 2),
-          Routes.reports: (_) => const MainShell(initialIndex: 3),
-          Routes.family: (_) => const MainShell(initialIndex: 4),
+          title: 'Alamein Model Hospital — Patient Portal',
+          theme: AppTheme.light(),
+          debugShowCheckedModeBanner: false,
+          initialRoute: Routes.home,
+          // Track the top route (so the alert FAB can hide on login/onboarding)...
+          navigatorObservers: [GlobalAlert.observer],
+          // ...and overlay the floating "Call your doctor" button on every screen.
+          builder: GlobalAlert.wrap,
+          routes: {
+            // The five tabs all open the shell on the matching tab. The shell's
+            // fixed bottom nav handles switching between them after that.
+            Routes.home: (_) => const MainShell(initialIndex: 0),
+            Routes.visits: (_) => const MainShell(initialIndex: 1),
+            Routes.aiAdvisor: (_) => const MainShell(initialIndex: 2),
+            Routes.reports: (_) => const MainShell(initialIndex: 3),
+            Routes.family: (_) => const MainShell(initialIndex: 4),
 
-          // Detail screens (pushed on top of the shell).
-          Routes.treatment: (_) => const TreatmentScreen(),
-          Routes.journey: (_) => const JourneyScreen(),
-          Routes.onboarding: (_) => const OnboardingScreen(),
-          Routes.login: (_) => const LoginScreen(),
-          Routes.notifications: (_) => const NotificationsScreen(),
-          Routes.profile: (_) => const ProfileScreen(),
-          Routes.entertainment: (_) => const EntertainmentScreen(),
-          Routes.development: (_) => const DevelopmentScreen(),
-          Routes.diagnosis: (_) => const DiagnosisScreen(),
-          Routes.medicines: (_) => const MedicinesScreen(),
-        },
-      ),
+            // Detail screens (pushed on top of the shell).
+            Routes.treatment: (_) => const TreatmentScreen(),
+            Routes.journey: (_) => const JourneyScreen(),
+            Routes.onboarding: (_) => const OnboardingScreen(),
+            Routes.login: (_) => const LoginScreen(),
+            Routes.notifications: (_) => const NotificationsScreen(),
+            Routes.profile: (_) => const ProfileScreen(),
+            Routes.entertainment: (_) => const EntertainmentScreen(),
+            Routes.development: (_) => const DevelopmentScreen(),
+            Routes.diagnosis: (_) => const DiagnosisScreen(),
+            Routes.medicines: (_) => const MedicinesScreen(),
+          },
+        ),
       ),
     );
   }

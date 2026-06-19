@@ -7,7 +7,9 @@ import '../../core/repositories/patient_repository.dart';
 class ReportsVm extends ChangeNotifier {
   final PatientRepository _repo;
 
-  ReportsVm(this._repo);
+  ReportsVm(this._repo) {
+    load(); // mock data is instant, so load straight away
+  }
 
   bool loading = false;
   List<Report> reports = [];
