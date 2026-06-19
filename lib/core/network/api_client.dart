@@ -34,6 +34,15 @@ class ApiClient {
   /// Bearer token saved after a successful login. Null = not logged in.
   String? token;
 
+  /// Called once when the server rejects a request with 401 Unauthorized
+  /// (expired/invalid token). main.dart uses it to clear the session and send
+  /// the user back to the login screen instead of leaving them stuck.
+  void Function()? onUnauthorized;
+
+  /// While true, a 401 does NOT trigger [onUnauthorized] — used during the
+  /// silent token-restore check on startup, where the splash handles routing.
+  bool suppressAuthRedirect = false;
+
   ApiClient({http.Client? httpClient})
       : _http = httpClient ?? buildHttpClient();
 
@@ -91,6 +100,11 @@ class ApiClient {
         throw ApiException('Unexpected response from server.',
             statusCode: res.statusCode);
       }
+    }
+
+    if (res.statusCode == 401 && !suppressAuthRedirect) {
+      // Session no longer valid — let the app drop it and go to login.
+      onUnauthorized?.call();
     }
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
