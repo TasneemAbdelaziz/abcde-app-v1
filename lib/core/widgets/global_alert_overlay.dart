@@ -19,17 +19,28 @@ class GlobalAlert {
   GlobalAlert._();
 
   // The route currently on top of the Navigator (starts at the initial route).
-  static final ValueNotifier<String?> _route =
-      ValueNotifier<String?>(Routes.home);
+  static final ValueNotifier<String?> _route = ValueNotifier<String?>(
+    Routes.home,
+  );
+
+  // The shell tab currently selected, so we can hide the FAB on AI Advisor.
+  static final ValueNotifier<int> _activeTab = ValueNotifier<int>(0);
 
   // Whether the emergency confirmation overlay is showing.
   static final ValueNotifier<bool> _emergencyOpen = ValueNotifier<bool>(false);
 
   /// Routes where the FAB must NOT appear.
-  static const Set<String> _hiddenOn = {Routes.onboarding, Routes.login};
+  static const Set<String> _hiddenOn = {
+    Routes.onboarding,
+    Routes.login,
+    Routes.aiAdvisor,
+  };
 
   /// Add this to `MaterialApp.navigatorObservers`.
   static final NavigatorObserver observer = _RouteTracker(_route);
+
+  /// Update the tab index when the shell switches tabs.
+  static void updateTab(int tabIndex) => _activeTab.value = tabIndex;
 
   /// Add this as `MaterialApp.builder`.
   static Widget wrap(BuildContext context, Widget? child) {
@@ -38,19 +49,28 @@ class GlobalAlert {
         // The actual app (navigator + all screens).
         if (child != null) child,
 
-        // The floating button â shown unless we're on login / onboarding.
+        // The floating button â shown unless we're on login / onboarding,
+        // or the AI Advisor tab inside the shell.
         ValueListenableBuilder<String?>(
           valueListenable: _route,
           builder: (context, route, _) {
-            if (route != null && _hiddenOn.contains(route)) {
-              return const SizedBox.shrink();
-            }
-            return Positioned(
-              right: 16.w,
-              bottom: 84.h, // sits above the bottom nav, like the prototype
-              child: SafeArea(
-                child: AlertFab(onTap: () => _emergencyOpen.value = true),
-              ),
+            return ValueListenableBuilder<int>(
+              valueListenable: _activeTab,
+              builder: (context, activeTab, __) {
+                if (route != null && _hiddenOn.contains(route)) {
+                  return const SizedBox.shrink();
+                }
+                if (activeTab == 2) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned(
+                  right: 16.w,
+                  bottom: 84.h, // sits above the bottom nav, like the prototype
+                  child: SafeArea(
+                    child: AlertFab(onTap: () => _emergencyOpen.value = true),
+                  ),
+                );
+              },
             );
           },
         ),
