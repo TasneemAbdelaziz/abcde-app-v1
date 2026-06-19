@@ -10,6 +10,7 @@ import 'core/notifications/notification_center.dart';
 import 'core/repositories/auth_repository.dart';
 import 'core/repositories/patient_api_repository.dart';
 import 'core/repositories/patient_repository.dart';
+import 'core/repositories/patient_care_api_repository.dart';
 import 'core/routing/routes.dart';
 import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
@@ -77,6 +78,9 @@ class AlameinApp extends StatelessWidget {
     final api = ApiClient();
     final auth = AuthRepository(api);
     final patientApi = PatientApiRepository(api);
+    final careApi = PatientCareApiRepository(api);   // 'api' is the shared ApiClient
+    Provider<PatientApiRepository>.value(value: patientApi);
+    Provider<PatientCareApiRepository>.value(value: careApi);  // ← add this
 
     // Language + the background notification poller (started after login).
     final locale = LocaleController();
@@ -107,9 +111,9 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TreatmentVm(repo)),
         ChangeNotifierProvider(create: (_) => JourneyVm(repo)),
         ChangeNotifierProvider(create: (_) => ReportsVm(repo)),
-        ChangeNotifierProvider(create: (_) => DiagnosisVm(repo)),
-        ChangeNotifierProvider(create: (_) => MedicinesVm(repo)),
-        ChangeNotifierProvider(create: (_) => VisitsVm(repo)),
+       ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),   // was repo
+       ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),   // was repo
+        ChangeNotifierProvider(create: (_) => VisitsVm(careApi)),      // was repo
         // TODO: register new ViewModels here.
       ],
       // ScreenUtil makes every .w/.h/.sp/.r scale from this 390Ã844 baseline,

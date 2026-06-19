@@ -1,21 +1,23 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/models/visit.dart';
-import '../../core/repositories/patient_repository.dart';
+import '../../core/repositories/patient_care_api_repository.dart';
 
 /// ViewModel for the Visits screen (and the Care Journey it opens).
 ///
-/// Holds the list of visits. The Care Journey screen reads the active visit
-/// back out of here by id, so a rating submitted there updates this list and
-/// both screens stay in sync.
+/// Backed by the real API. The `/visits` list does NOT include the timeline,
+/// so after loading the list we fetch the Care Journey for the active visit
+/// and attach it — that way the Care Journey screen can read it straight out
+/// of [visitById] without any extra wiring.
 class VisitsVm extends ChangeNotifier {
-  final PatientRepository _repo;
+  final PatientCareApiRepository _repo;
 
   VisitsVm(this._repo) {
-    load(); // mock data is instant, so load straight away
+    load();
   }
 
   bool loading = false;
+  String? error;
   List<Visit> visits = [];
 
   /// Looks up a visit by id (used by the Care Journey screen).
@@ -28,17 +30,35 @@ class VisitsVm extends ChangeNotifier {
 
   Future<void> load() async {
     loading = true;
+    error = null;
     notifyListeners();
 
-    visits = _repo.getVisits();
+    try {
+      final list = await _repo.getVisits();
+
+      // Attach the Care Journey timeline to the active visit.
+      final activeIndex = list.indexWhere((v) => v.isActive);
+      if (activeIndex != -1) {
+        try {
+          final journey = await _repo.getJourney();
+          list[activeIndex] = list[activeIndex].copyWith(journey: journey);
+        } catch (_) {
+          // If the journey fails, leave it null — the card still shows.
+        }
+      }
+      visits = list;
+    } catch (e) {
+      error = 'Could not load visits.';
+    }
 
     loading = false;
     notifyListeners();
-    // TODO: handle errors once the repo can fail.
   }
 
-  /// Stores a rating the patient gave to a stage of a visit's Care Journey.
-  void rateStage(String visitId, String stageId, int rating) {
+  /// Records a stage rating: updates the screen immediately, then sends it to
+  /// the backend (POST /stages/{id}/feedback).
+  Future<void> rateStage(String visitId, String stageId, int rating) async {
+    // Optimistic local update so the stars show right away.
     visits = [
       for (final v in visits)
         if (v.id == visitId && v.journey != null)
@@ -54,6 +74,16 @@ class VisitsVm extends ChangeNotifier {
           v,
     ];
     notifyListeners();
-    // TODO: persist the rating through the repository when the API exists.
+
+    // Send to the backend. Stage ids that came from the timeline are numeric;
+    // upcoming stages aren't rateable, so this is safe.
+    final id = int.tryParse(stageId);
+    if (id != null) {
+      try {
+        await _repo.rateStage(id, rating);
+      } catch (_) {
+        // Keep the optimistic update; the rating can be retried later.
+      }
+    }
   }
 }

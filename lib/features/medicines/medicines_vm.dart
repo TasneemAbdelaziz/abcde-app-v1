@@ -1,27 +1,33 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/models/medicine.dart';
-import '../../core/repositories/patient_repository.dart';
+import '../../core/repositories/patient_care_api_repository.dart';
 
-/// ViewModel for the Medicines screen. Loads the prescribed medicines.
+/// ViewModel for the Medicines screen. Loads the prescribed medicines from the
+/// real API (PatientCareApiRepository).
 class MedicinesVm extends ChangeNotifier {
-  final PatientRepository _repo;
+  final PatientCareApiRepository _repo;
 
   MedicinesVm(this._repo) {
-    load(); // mock data is instant, so load straight away
+    load();
   }
 
   bool loading = false;
+  String? error;
   List<Medicine> medicines = [];
 
   Future<void> load() async {
     loading = true;
+    error = null;
     notifyListeners();
 
-    medicines = _repo.getMedicines();
+    try {
+      medicines = await _repo.getMedicines();
+    } catch (e) {
+      error = 'Could not load medicines.';
+    }
 
     loading = false;
     notifyListeners();
-    // TODO: handle errors once the repo can fail.
   }
 }

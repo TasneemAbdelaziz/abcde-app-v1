@@ -1,32 +1,35 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/models/diagnosis.dart';
-import '../../core/repositories/patient_repository.dart';
+import '../../core/repositories/patient_care_api_repository.dart';
 
 /// ViewModel for the Diagnosis screen.
 ///
-/// Holds the structured [Diagnosis] the screen displays: the headline
-/// condition, the explainer video, the plain-language summary, and the
-/// prevention videos. The widget only reads this — it never calls the
-/// repository itself.
+/// Holds the structured [Diagnosis] the screen displays. Now backed by the
+/// real API (PatientCareApiRepository), so loading is asynchronous.
 class DiagnosisVm extends ChangeNotifier {
-  final PatientRepository _repo;
+  final PatientCareApiRepository _repo;
 
   DiagnosisVm(this._repo) {
-    load(); // mock data is instant, so load straight away
+    load();
   }
 
   bool loading = false;
+  String? error;
   Diagnosis? diagnosis;
 
   Future<void> load() async {
     loading = true;
+    error = null;
     notifyListeners();
 
-    diagnosis = _repo.getDiagnosis();
+    try {
+      diagnosis = await _repo.getDiagnosis();
+    } catch (e) {
+      error = 'Could not load the diagnosis.';
+    }
 
     loading = false;
     notifyListeners();
-    // TODO: handle errors once the repo can fail.
   }
 }
