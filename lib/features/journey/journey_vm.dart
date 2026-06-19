@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/models/journey_header.dart';
 import '../../core/models/visit_stage.dart';
 import '../../core/repositories/patient_repository.dart';
 
@@ -11,12 +12,14 @@ class JourneyVm extends ChangeNotifier {
   JourneyVm(this._repo);
 
   bool loading = false;
+  JourneyHeader header = JourneyHeader.fromMock();
   List<VisitStage> stages = [];
 
   Future<void> load() async {
     loading = true;
     notifyListeners();
 
+    header = _repo.getJourneyHeader();
     stages = _repo.getStages();
 
     loading = false;

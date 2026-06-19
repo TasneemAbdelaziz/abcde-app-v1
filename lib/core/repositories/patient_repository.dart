@@ -3,6 +3,7 @@ import '../models/patient.dart';
 import '../models/report.dart';
 import '../models/visit_stage.dart';
 import '../models/vital.dart';
+import '../models/journey_header.dart';
 
 /// The ONE data source for the whole app, for now.
 ///
@@ -14,6 +15,9 @@ import '../models/vital.dart';
 class PatientRepository {
   /// The current logged-in patient.
   Patient getPatient() => Patient.fromMock();
+
+  /// Journey header data for the Journey screen.
+  JourneyHeader getJourneyHeader() => JourneyHeader.fromMock();
 
   /// Short text describing where the patient is in their care journey.
   String getJourneySummary() => 'Stage 5 of 8 Â· Recovery & Monitoring';
@@ -52,18 +56,48 @@ class PatientRepository {
   /// Lab reports and medical documents.
   List<Report> getReports() {
     return const [
-      Report(id: 'r-001', title: 'Blood Test â Complete Panel', date: '2026-06-10', type: 'lab'),
-      Report(id: 'r-002', title: 'Chest X-Ray', date: '2026-06-11', type: 'imaging'),
-      Report(id: 'r-003', title: 'Discharge Summary', date: '2026-06-13', type: 'summary'),
+      Report(
+        id: 'r-001',
+        title: 'Blood Test â Complete Panel',
+        date: '2026-06-10',
+        type: 'lab',
+      ),
+      Report(
+        id: 'r-002',
+        title: 'Chest X-Ray',
+        date: '2026-06-11',
+        type: 'imaging',
+      ),
+      Report(
+        id: 'r-003',
+        title: 'Discharge Summary',
+        date: '2026-06-13',
+        type: 'summary',
+      ),
     ];
   }
 
   /// Prescribed medicines.
   List<Medicine> getMedicines() {
     return const [
-      Medicine(id: 'm-001', name: 'Aspirin', dose: '81 mg', schedule: 'Once daily Â· after breakfast'),
-      Medicine(id: 'm-002', name: 'Atorvastatin', dose: '40 mg', schedule: 'Once daily Â· evening'),
-      Medicine(id: 'm-003', name: 'Clopidogrel', dose: '75 mg', schedule: 'Once daily Â· morning'),
+      Medicine(
+        id: 'm-001',
+        name: 'Aspirin',
+        dose: '81 mg',
+        schedule: 'Once daily Â· after breakfast',
+      ),
+      Medicine(
+        id: 'm-002',
+        name: 'Atorvastatin',
+        dose: '40 mg',
+        schedule: 'Once daily Â· evening',
+      ),
+      Medicine(
+        id: 'm-003',
+        name: 'Clopidogrel',
+        dose: '75 mg',
+        schedule: 'Once daily Â· morning',
+      ),
     ];
   }
 
