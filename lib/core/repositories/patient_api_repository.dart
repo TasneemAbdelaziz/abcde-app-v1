@@ -67,6 +67,17 @@ class PatientApiRepository {
     return <Map<String, dynamic>>[];
   }
 
+  /// Fetches the patient's family members from `GET /patients/{serial}/family`.
+  /// Returns the raw list of maps (empty list on missing data).
+  Future<List<Map<String, dynamic>>> getFamily(String serial) async {
+    final res = await _api.getJson('/patients/$serial/family');
+    final data = res['data'];
+    if (data is List) {
+      return data.whereType<Map<String, dynamic>>().toList();
+    }
+    return <Map<String, dynamic>>[];
+  }
+
   /// The most recent vital-sign reading for the patient's visit, or null.
   Future<VitalsReading?> getLatestVitals(String serial) async {
     try {

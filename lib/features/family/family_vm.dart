@@ -3,9 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/models/family_member.dart';
+import '../../core/repositories/patient_api_repository.dart';
+import '../home/home_vm.dart';
 
 /// ViewModel for the Family screen.
 class FamilyVm extends ChangeNotifier {
+  final PatientApiRepository? _api;
+  final HomeVm? _home;
+
   List<FamilyMember> members = [];
   bool loading = false;
 
@@ -15,40 +20,94 @@ class FamilyVm extends ChangeNotifier {
   bool showLabResults = true;
   bool showCareJourney = true;
 
-  FamilyVm() {
-    load();
+  FamilyVm([this._api, this._home]) {
+    // If HomeVm already has a profile, load immediately. Otherwise listen
+    // for when it becomes available.
+    if (_home != null && _home!.profile != null) {
+      load();
+    } else if (_home != null) {
+      _home!.addListener(_homeListener);
+    } else {
+      // Fallback: attempt load (will use _api.getMySerial if provided).
+      load();
+    }
+  }
+
+  void _homeListener() {
+    if (_home != null && _home!.profile != null) {
+      _home!.removeListener(_homeListener);
+      load();
+    }
   }
 
   Future<void> load() async {
     loading = true;
     notifyListeners();
+    try {
+      List<Map<String, dynamic>> raw = [];
 
-    // Mock family members data
-    members = const [
-      FamilyMember(
-        id: 'fm-001',
-        name: 'Mahmoud Ibrahim',
-        initials: 'MI',
-        role: 'Son',
-        relationship: 'Account Manager',
-        status: 'active',
-        accessLevel: 'Full Access',
-        description: "Can act on patient's behalf",
-      ),
-      FamilyMember(
-        id: 'fm-002',
-        name: 'Samia Ibrahim',
-        initials: 'SI',
-        role: 'Spouse',
-        relationship: 'Spouse',
-        status: 'active',
-        accessLevel: 'View Only',
-        description: 'View status & receive alerts',
-      ),
-    ];
+      // Prefer the patient serial from HomeVm.profile when available.
+      String serial = '';
+      if (_home != null && _home!.profile != null) {
+        serial = _home!.profile!.serial;
+      }
 
-    loading = false;
-    notifyListeners();
+      if (serial.isEmpty && _api != null) {
+        serial = await _api!.getMySerial();
+      }
+
+      if (serial.isNotEmpty && _api != null) {
+        raw = await _api!.getFamily(serial);
+      }
+
+      if (raw.isEmpty) {
+        members = [];
+      } else {
+        members = [for (final e in raw) _fromApi(e)];
+      }
+    } catch (e) {
+      members = [];
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
+  }
+
+  FamilyMember _fromApi(Map<String, dynamic> e) {
+    final idNum = e['id']?.toString() ?? '';
+    final name = (e['companion_name'] ?? '').toString();
+    final relation = (e['relation'] ?? '').toString();
+    final phone = (e['companion_phone'] ?? '').toString();
+    final canSee = (e['can_see_status'] ?? false) as bool? ?? false;
+    final receives = (e['receives_alerts'] ?? false) as bool? ?? false;
+    final isDecision = (e['is_decision_maker'] ?? false) as bool? ?? false;
+    final accepted = (e['is_accepted'] ?? false) as bool? ?? false;
+
+    final initials = _getInitials(name);
+    final status = accepted ? 'active' : 'pending';
+    String accessLevel = 'View Only';
+    String description = '';
+    if (isDecision) {
+      accessLevel = 'Full Access';
+      description = "Can act on patient's behalf";
+    } else if (canSee && receives) {
+      accessLevel = 'View Only';
+      description = 'View status & receive alerts';
+    } else if (canSee) {
+      accessLevel = 'View Only';
+      description = 'Can see status';
+    }
+
+    return FamilyMember(
+      id: 'fm-$idNum',
+      name: name.isNotEmpty ? name : 'Unknown',
+      initials: initials,
+      role: relation.isNotEmpty ? relation : 'Relative',
+      relationship: phone,
+      status: status,
+      accessLevel: accessLevel,
+      description: description,
+    );
   }
 
   void toggleVitals(bool value) {
@@ -205,5 +264,11 @@ class FamilyVm extends ChangeNotifier {
   void removeMember(String memberId) {
     members.removeWhere((m) => m.id == memberId);
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    if (_home != null) _home!.removeListener(_homeListener);
+    super.dispose();
   }
 }

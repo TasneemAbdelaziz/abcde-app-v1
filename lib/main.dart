@@ -128,7 +128,10 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),
         ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),
         ChangeNotifierProvider(create: (_) => VisitsVm(careApi)),
-        ChangeNotifierProvider(create: (_) => FamilyVm()),
+        ChangeNotifierProvider(
+          create: (ctx) =>
+              FamilyVm(ctx.read<PatientApiRepository>(), ctx.read<HomeVm>()),
+        ),
         // TODO: register new ViewModels here.
       ],
       // ScreenUtil makes every .w/.h/.sp/.r scale from this 390×844 baseline,
