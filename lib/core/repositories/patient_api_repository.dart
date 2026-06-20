@@ -54,6 +54,19 @@ class PatientApiRepository {
     }
   }
 
+  /// Returns the raw `timeline` array from `GET /visits/#{serial}` as a
+  /// list of maps. Returns an empty list if no timeline is present.
+  Future<List<Map<String, dynamic>>> getVisitTimeline(String serial) async {
+    final res = await _api.getJson('/visits/%23$serial');
+    final data = res['data'];
+    if (data is Map<String, dynamic> && data['timeline'] is List) {
+      return (data['timeline'] as List)
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    }
+    return <Map<String, dynamic>>[];
+  }
+
   /// The most recent vital-sign reading for the patient's visit, or null.
   Future<VitalsReading?> getLatestVitals(String serial) async {
     try {

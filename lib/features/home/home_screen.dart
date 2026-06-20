@@ -96,6 +96,7 @@ class _GreetingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = vm.profile;
+    
     final name = (p?.name.isNotEmpty ?? false) ? p!.name : 'Patient';
 
     // "56 yrs · Female · Emergency Bay 2"

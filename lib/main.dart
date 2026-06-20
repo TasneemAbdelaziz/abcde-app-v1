@@ -53,7 +53,8 @@ void main() async {
   await AppPrefs.init();
   // Set up local (heads-up) notifications. Tapping one opens the list.
   await LocalNotifications.init(
-    onTap: (_) => rootNavigatorKey.currentState?.pushNamed(Routes.notifications),
+    onTap: (_) =>
+        rootNavigatorKey.currentState?.pushNamed(Routes.notifications),
   );
   runApp(const AlameinApp());
 }
@@ -92,8 +93,10 @@ class AlameinApp extends StatelessWidget {
       api.token = null;
       AppPrefs.clearAuthToken();
       notifications.stop();
-      rootNavigatorKey.currentState
-          ?.pushNamedAndRemoveUntil(Routes.login, (_) => false);
+      rootNavigatorKey.currentState?.pushNamedAndRemoveUntil(
+        Routes.login,
+        (_) => false,
+      );
     };
 
     return MultiProvider(
@@ -120,7 +123,7 @@ class AlameinApp extends StatelessWidget {
         // One ViewModel per DATA screen.
         ChangeNotifierProvider(create: (_) => HomeVm(patientApi)),
         ChangeNotifierProvider(create: (_) => TreatmentVm(repo)),
-        ChangeNotifierProvider(create: (_) => JourneyVm(repo)),
+        ChangeNotifierProvider(create: (_) => JourneyVm(patientApi)),
         ChangeNotifierProvider(create: (_) => ReportsVm(repo)),
         ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),
         ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),
