@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/models/family_member.dart';
@@ -80,8 +79,7 @@ class FamilyVm extends ChangeNotifier {
       );
 
       if (image != null) {
-        // TODO: Process the image and extract QR code data
-        // For now, show a success dialog
+        if (!context.mounted) return;
         _showDialog(
           context,
           title: 'QR Code Scanned',
@@ -91,6 +89,7 @@ class FamilyVm extends ChangeNotifier {
         );
       }
     } catch (e) {
+      if (!context.mounted) return;
       _showDialog(
         context,
         title: 'Camera Error',

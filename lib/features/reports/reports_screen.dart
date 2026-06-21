@@ -254,7 +254,7 @@ class _ReportCard extends StatelessWidget {
             width: 48.w,
             height: 48.w,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.14),
+              color: iconColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(16.r),
             ),
             child: Icon(iconData, color: iconColor, size: 24.sp),

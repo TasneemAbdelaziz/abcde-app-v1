@@ -79,7 +79,6 @@ class Diagnosis {
           badge: 'Prevention guide',
           kind: DiagnosisVideoKind.prevention,
           assetPath: 'assets/videos/daily_habits.mp4',
-          available: false, // TODO: set true once the file is added.
         ),
         DiagnosisVideo(
           id: 'v-prevent-2',
@@ -88,8 +87,7 @@ class Diagnosis {
           duration: '3:35',
           badge: 'Stay alert',
           kind: DiagnosisVideoKind.alert,
-          assetPath: 'assets/videos/warning_signs.mp4',
-          available: false, // TODO: set true once the file is added.
+          assetPath: 'assets/videos/signs_you_shouldn\'t_ignore.mp4',
         ),
       ],
     );

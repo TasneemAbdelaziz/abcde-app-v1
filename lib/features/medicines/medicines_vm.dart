@@ -12,6 +12,7 @@ class MedicinesVm extends ChangeNotifier {
     load();
   }
 
+  bool _disposed = false;
   bool loading = false;
   String? error;
   List<Medicine> medicines = [];
@@ -19,15 +20,25 @@ class MedicinesVm extends ChangeNotifier {
   Future<void> load() async {
     loading = true;
     error = null;
-    notifyListeners();
+    _notify();
 
     try {
       medicines = await _repo.getMedicines();
     } catch (e) {
       error = 'Could not load medicines.';
+    } finally {
+      loading = false;
+      _notify();
     }
+  }
 
-    loading = false;
-    notifyListeners();
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

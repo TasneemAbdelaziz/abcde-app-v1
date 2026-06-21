@@ -202,7 +202,7 @@ class FamilyScreen extends StatelessWidget {
           label,
           style: TextStyle(fontSize: 14.sp, color: AppColors.text),
         ),
-        Switch(value: value, onChanged: onChanged, activeColor: AppColors.blue),
+        Switch(value: value, onChanged: onChanged, activeThumbColor: AppColors.blue),
       ],
     );
   }
@@ -267,7 +267,7 @@ class _FamilyMemberCard extends StatelessWidget {
                             vertical: 3.h,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.green.withOpacity(0.15),
+                            color: AppColors.green.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10.r),
                           ),
                           child: Text(
@@ -299,7 +299,7 @@ class _FamilyMemberCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: member.accessLevel == 'View Only'
-                  ? AppColors.textDim.withOpacity(0.08)
+                  ? AppColors.textDim.withValues(alpha: 0.08)
                   : AppColors.bluePale,
               borderRadius: BorderRadius.circular(12.r),
             ),
