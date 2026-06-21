@@ -1,8 +1,10 @@
 // [STATIC] screen — owner: Beginner 2.
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 
@@ -59,7 +61,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BrandBar(title: 'Learn & Relax'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_entertainment')),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Column(
@@ -94,7 +96,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'GAMES',
+            context.read<LocaleController>().t('games'),
             style: TextStyle(
               color: AppColors.text,
               fontSize: 12.sp,
@@ -118,7 +120,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
           ),
           SizedBox(height: 24.h),
           Text(
-            'MUSIC',
+            context.read<LocaleController>().t('music'),
             style: TextStyle(
               color: AppColors.text,
               fontSize: 12.sp,
@@ -267,7 +269,10 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(children: [_buildTab('Learn', 0), _buildTab('Relax', 1)]),
+      child: Row(children: [
+        _buildTab(context.read<LocaleController>().t('tab_learn'), 0),
+        _buildTab(context.read<LocaleController>().t('tab_relax'), 1),
+      ]),
     );
   }
 

@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:provider/provider.dart';
+
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 
@@ -37,7 +40,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BrandBar(title: 'Development'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_development')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
@@ -84,7 +87,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         ),
         SizedBox(height: 24.h),
         Text(
-          'Area of suggestion',
+          context.read<LocaleController>().t('dev_area'),
           style: TextStyle(
             fontSize: 13.sp,
             fontWeight: FontWeight.w600,
@@ -130,7 +133,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         ),
         SizedBox(height: 24.h),
         Text(
-          'Your suggestion',
+          context.read<LocaleController>().t('dev_suggestion'),
           style: TextStyle(
             fontSize: 13.sp,
             fontWeight: FontWeight.w600,
@@ -173,7 +176,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
               ),
             ),
             child: Text(
-              'Submit Suggestion',
+              context.read<LocaleController>().t('dev_submit'),
               style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
           ),
@@ -190,7 +193,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         Text('👏', style: TextStyle(fontSize: 52.sp)),
         SizedBox(height: 24.h),
         Text(
-          'Thank you!',
+          context.read<LocaleController>().t('dev_thanks'),
           style: TextStyle(
             fontSize: 24.sp,
             fontWeight: FontWeight.w700,

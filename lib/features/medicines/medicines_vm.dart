@@ -8,9 +8,8 @@ import '../../core/repositories/patient_care_api_repository.dart';
 class MedicinesVm extends ChangeNotifier {
   final PatientCareApiRepository _repo;
 
-  MedicinesVm(this._repo) {
-    load();
-  }
+  // The screen calls load() when it opens (when we're authenticated).
+  MedicinesVm(this._repo);
 
   bool loading = false;
   String? error;

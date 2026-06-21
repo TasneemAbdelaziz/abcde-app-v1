@@ -35,7 +35,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'Notifications'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_notifications')),
       body: RefreshIndicator(
         onRefresh: () => context.read<NotificationsVm>().load(),
         child: _body(context, vm),

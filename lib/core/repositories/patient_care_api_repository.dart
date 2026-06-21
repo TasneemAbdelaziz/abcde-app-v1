@@ -36,12 +36,16 @@ class PatientCareApiRepository {
 
   Future<Map<String, dynamic>> _visitDetail() async {
     final serial = await _serial();
-    final res = await _api.getJson('/visits/%23$serial');
-    final data = res['data'];
-    if (data is! Map<String, dynamic>) {
-      throw ApiException('Unexpected visit response.');
+    if (serial.isEmpty) return <String, dynamic>{};
+    try {
+      final res = await _api.getJson('/visits/%23$serial');
+      final data = res['data'];
+      return data is Map<String, dynamic> ? data : <String, dynamic>{};
+    } on ApiException catch (e) {
+      // No open visit → show sensible defaults instead of an endless spinner.
+      if (e.statusCode == 404) return <String, dynamic>{};
+      rethrow;
     }
-    return data;
   }
 
   /// GET /visits — the "My Visits" list.
@@ -64,13 +68,19 @@ class PatientCareApiRepository {
   /// GET /visits/{id}/prescriptions — the My Medicines list.
   Future<List<Medicine>> getMedicines() async {
     final serial = await _serial();
-    final res = await _api.getJson('/visits/%23$serial/prescriptions');
-    final data = res['data'];
-    if (data is! List) return const [];
-    return data
-        .whereType<Map<String, dynamic>>()
-        .map(_medicineFromApi)
-        .toList();
+    if (serial.isEmpty) return const [];
+    try {
+      final res = await _api.getJson('/visits/%23$serial/prescriptions');
+      final data = res['data'];
+      if (data is! List) return const [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(_medicineFromApi)
+          .toList();
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return const []; // no open visit
+      rethrow;
+    }
   }
 
   /// POST /stages/{id}/feedback — submit a Care-Journey stage rating.

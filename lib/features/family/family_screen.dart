@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/family_member.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -18,13 +19,13 @@ class FamilyScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'Family Members'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_family')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 24.h),
               children: [
-                _buildHeader(),
+                _buildHeader(context),
                 SizedBox(height: 20.h),
                 for (final member in vm.members) ...[
                   _FamilyMemberCard(member: member),
@@ -39,12 +40,12 @@ class FamilyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Manage who follows your care',
+          context.read<LocaleController>().t('family_manage'),
           style: TextStyle(
             fontSize: 15.sp,
             fontWeight: FontWeight.w600,
@@ -74,7 +75,7 @@ class FamilyScreen extends StatelessWidget {
                 Icon(Icons.qr_code_2, color: AppColors.blue, size: 20.sp),
                 SizedBox(width: 8.w),
                 Text(
-                  'Scan QR Code',
+                  context.read<LocaleController>().t('scan_qr'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -102,7 +103,7 @@ class FamilyScreen extends StatelessWidget {
                 Icon(Icons.edit, color: AppColors.blue, size: 20.sp),
                 SizedBox(width: 8.w),
                 Text(
-                  'Add Manually',
+                  context.read<LocaleController>().t('add_manually'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -122,7 +123,7 @@ class FamilyScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'PRIVACY CONTROLS',
+          context.read<LocaleController>().t('privacy_controls'),
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w700,

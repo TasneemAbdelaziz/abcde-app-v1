@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/diagnosis.dart';
 import '../../core/models/treatment.dart';
 import '../../core/routing/routes.dart';
@@ -19,11 +20,12 @@ class TreatmentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TreatmentVm>();
+    final loc = context.watch<LocaleController>();
     final p = vm.plan;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const BrandBar(title: 'Treatment Plan'),
+      appBar: BrandBar(title: loc.t('title_treatment')),
       body: (vm.loading || p == null)
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -38,12 +40,12 @@ class TreatmentScreen extends StatelessWidget {
                 _StatsRow(plan: p),
                 SizedBox(height: 18.h),
 
-                const _Label('YOUR SURGERY EXPLAINED'),
+                _Label(loc.t('tx_surgery')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: p.surgeryVideo),
                 SizedBox(height: 18.h),
 
-                const _Label('AFTER YOUR SURGERY'),
+                _Label(loc.t('tx_after')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: p.afterSurgeryVideo),
                 SizedBox(height: 16.h),
@@ -51,7 +53,7 @@ class TreatmentScreen extends StatelessWidget {
                 const _MyMedicinesButton(),
                 SizedBox(height: 18.h),
 
-                const _Label("TODAY'S MEDICINE TIMELINE"),
+                _Label(loc.t('tx_timeline')),
                 SizedBox(height: 12.h),
                 for (int i = 0; i < p.timeline.length; i++)
                   _DoseRow(
@@ -60,7 +62,7 @@ class TreatmentScreen extends StatelessWidget {
                   ),
                 SizedBox(height: 18.h),
 
-                const _Label("TODAY'S GOALS"),
+                _Label(loc.t('tx_goals')),
                 SizedBox(height: 10.h),
                 for (final g in p.goals) ...[
                   _GoalCard(goal: g),
@@ -68,7 +70,7 @@ class TreatmentScreen extends StatelessWidget {
                 ],
                 SizedBox(height: 8.h),
 
-                const _Label('UPCOMING'),
+                _Label(loc.t('tx_upcoming')),
                 SizedBox(height: 10.h),
                 for (final u in p.upcoming) ...[
                   _UpcomingCard(item: u),
@@ -589,7 +591,7 @@ class _MyMedicinesButton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('My Medicines',
+                  Text(context.read<LocaleController>().t('my_medicines'),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.sp,

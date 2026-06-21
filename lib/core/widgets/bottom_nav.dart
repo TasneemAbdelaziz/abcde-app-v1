@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
+import '../i18n/locale_controller.dart';
 import '../theme/app_theme.dart';
 
 /// The shared bottom navigation bar (Home Â· Visits Â· AI Advisor Â· Reports Â· Family).
@@ -20,17 +22,18 @@ class AppBottomNav extends StatelessWidget {
     required this.onTap,
   });
 
-  // (icon, label) for the five tabs, in display order.
-  static const List<({IconData icon, String label})> _tabs = [
-    (icon: Icons.home_outlined, label: 'Home'),
-    (icon: Icons.calendar_today_outlined, label: 'Visits'),
-    (icon: Icons.chat_bubble_outline, label: 'AI Advisor'),
-    (icon: Icons.description_outlined, label: 'Reports'),
-    (icon: Icons.people_outline, label: 'Family'),
+  // (icon, translation key) for the five tabs, in display order.
+  static const List<({IconData icon, String key})> _tabs = [
+    (icon: Icons.home_outlined, key: 'nav_home'),
+    (icon: Icons.calendar_today_outlined, key: 'nav_visits'),
+    (icon: Icons.chat_bubble_outline, key: 'nav_ai'),
+    (icon: Icons.description_outlined, key: 'nav_reports'),
+    (icon: Icons.people_outline, key: 'nav_family'),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.bg,
@@ -44,7 +47,7 @@ class AppBottomNav extends StatelessWidget {
               Expanded(
                 child: _NavTab(
                   icon: _tabs[i].icon,
-                  label: _tabs[i].label,
+                  label: loc.t(_tabs[i].key),
                   active: i == currentIndex,
                   onTap: () => onTap(i),
                 ),

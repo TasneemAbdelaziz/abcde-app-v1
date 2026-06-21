@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/visit_stage.dart';
 import '../../core/models/patient_profile.dart';
 import '../home/home_vm.dart';
@@ -39,7 +40,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
     final arrivalAt = visit?.arrivedAt;
 
     return Scaffold(
-      appBar: const BrandBar(title: 'Journey'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_journey')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -266,7 +267,7 @@ class _StageRow extends StatelessWidget {
                     ),
                   ],
                   SizedBox(height: 8.h),
-                  _control(),
+                  _control(context),
                 ],
               ),
             ),
@@ -276,7 +277,7 @@ class _StageRow extends StatelessWidget {
     );
   }
 
-  Widget _control() {
+  Widget _control(BuildContext context) {
     if (_isDone && stage.rating > 0) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +302,7 @@ class _StageRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
-            'Rate this stage',
+            context.read<LocaleController>().t('rate_stage'),
             style: TextStyle(
               color: AppColors.blue,
               fontSize: 12.sp,
@@ -332,7 +333,7 @@ class _StageRow extends StatelessWidget {
             ),
             SizedBox(width: 6.w),
             Text(
-              'Happening now',
+              context.read<LocaleController>().t('happening_now'),
               style: TextStyle(
                 color: AppColors.blue,
                 fontSize: 12.sp,

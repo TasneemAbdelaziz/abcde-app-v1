@@ -3,30 +3,100 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/medicine.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import 'medicines_vm.dart';
 
 /// All prescribed medicines, each with a product photo, dose, and schedule.
-class MedicinesScreen extends StatelessWidget {
+class MedicinesScreen extends StatefulWidget {
   const MedicinesScreen({super.key});
+
+  @override
+  State<MedicinesScreen> createState() => _MedicinesScreenState();
+}
+
+class _MedicinesScreenState extends State<MedicinesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // (Re)load from the backend every time the screen opens (authenticated).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<MedicinesVm>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MedicinesVm>();
+    final loc = context.watch<LocaleController>();
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'My Medicines'),
-      body: vm.loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
-              itemCount: vm.medicines.length,
-              separatorBuilder: (_, __) => SizedBox(height: 14.h),
-              itemBuilder: (_, i) => _MedicineCard(medicine: vm.medicines[i]),
+      appBar: BrandBar(title: loc.t('title_medicines')),
+      body: _body(context, vm, loc),
+    );
+  }
+
+  Widget _body(BuildContext context, MedicinesVm vm, LocaleController loc) {
+    if (vm.loading && vm.medicines.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.error != null && vm.medicines.isEmpty) {
+      return _MedicinesMessage(
+        icon: Icons.cloud_off,
+        text: loc.t('meds_error'),
+        onRetry: () => context.read<MedicinesVm>().load(),
+      );
+    }
+    if (vm.medicines.isEmpty) {
+      return _MedicinesMessage(
+        icon: Icons.medication_outlined,
+        text: loc.t('meds_none'),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: () => context.read<MedicinesVm>().load(),
+      child: ListView.separated(
+        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
+        itemCount: vm.medicines.length,
+        separatorBuilder: (_, __) => SizedBox(height: 14.h),
+        itemBuilder: (_, i) => _MedicineCard(medicine: vm.medicines[i]),
+      ),
+    );
+  }
+}
+
+/// Centered empty / error message with an optional Retry button.
+class _MedicinesMessage extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final VoidCallback? onRetry;
+  const _MedicinesMessage({required this.icon, required this.text, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48.sp, color: AppColors.textDim),
+            SizedBox(height: 12.h),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
             ),
+            if (onRetry != null) ...[
+              SizedBox(height: 16.h),
+              OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

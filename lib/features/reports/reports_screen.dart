@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/report.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -23,10 +24,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ReportsVm>();
+    final loc = context.watch<LocaleController>();
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'Reports'),
+      appBar: BrandBar(title: loc.t('title_reports')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -53,7 +55,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'RECORDS',
+          context.read<LocaleController>().t('records'),
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w700,
@@ -72,7 +74,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         SizedBox(height: 8.h),
         Text(
-          'Recent reports, lab results, and medical documents.',
+          context.read<LocaleController>().t('reports_subtitle'),
           style: TextStyle(
             fontSize: 13.sp,
             color: AppColors.textMuted,
@@ -93,8 +95,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: EdgeInsets.all(4.w),
       child: Row(
         children: [
-          _buildSegmentButton(label: 'Health', index: 0),
-          _buildSegmentButton(label: 'Financial', index: 1),
+          _buildSegmentButton(
+              label: context.read<LocaleController>().t('tab_health'), index: 0),
+          _buildSegmentButton(
+              label: context.read<LocaleController>().t('tab_financial'),
+              index: 1),
         ],
       ),
     );
@@ -224,7 +229,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: EdgeInsets.zero,
               ),
               child: Text(
-                'Pay Now',
+                context.read<LocaleController>().t('pay_now'),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,

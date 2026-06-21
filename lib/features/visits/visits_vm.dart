@@ -12,9 +12,8 @@ import '../../core/repositories/patient_care_api_repository.dart';
 class VisitsVm extends ChangeNotifier {
   final PatientCareApiRepository _repo;
 
-  VisitsVm(this._repo) {
-    load();
-  }
+  // The screen calls load() when it opens (when we're authenticated).
+  VisitsVm(this._repo);
 
   bool loading = false;
   String? error;

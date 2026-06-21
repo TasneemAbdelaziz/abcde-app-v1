@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/diagnosis.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -11,36 +12,57 @@ import 'diagnosis_vm.dart';
 
 /// Current diagnosis: a doctor-recorded explainer video, a plain-language
 /// summary, and prevention videos.
-class DiagnosisScreen extends StatelessWidget {
+class DiagnosisScreen extends StatefulWidget {
   const DiagnosisScreen({super.key});
+
+  @override
+  State<DiagnosisScreen> createState() => _DiagnosisScreenState();
+}
+
+class _DiagnosisScreenState extends State<DiagnosisScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // (Re)load from the backend every time the screen opens — by now we're
+    // authenticated, so the token is attached.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<DiagnosisVm>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<DiagnosisVm>();
+    final loc = context.watch<LocaleController>();
     final dx = vm.diagnosis;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const BrandBar(title: 'Diagnosis'),
-      body: (vm.loading || dx == null)
+      appBar: BrandBar(title: loc.t('title_diagnosis')),
+      body: (vm.loading && dx == null)
           ? const Center(child: CircularProgressIndicator())
+          : dx == null
+          ? _ErrorRetry(
+              message: loc.t('dx_error'),
+              onRetry: () => context.read<DiagnosisVm>().load(),
+            )
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 28.h),
               children: [
                 _DiagnosisHero(diagnosis: dx),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('YOUR CASE EXPLAINED'),
+                _SectionLabel(loc.t('dx_case')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: dx.caseVideo),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('WHAT THIS MEANS'),
+                _SectionLabel(loc.t('dx_means')),
                 SizedBox(height: 10.h),
                 _WhatThisMeansCard(text: dx.explanation),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('HOW TO PREVENT IT FROM WORSENING'),
+                _SectionLabel(loc.t('dx_prevent')),
                 SizedBox(height: 10.h),
                 for (final v in dx.preventionVideos) ...[
                   _VideoCard(video: v),
@@ -75,7 +97,7 @@ class _DiagnosisHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Current diagnosis',
+            context.watch<LocaleController>().t('dx_current'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 11.sp,
@@ -313,6 +335,36 @@ class _VideoCard extends StatelessWidget {
       case DiagnosisVideoKind.alert:
         return Icons.warning_amber_rounded;
     }
+  }
+}
+
+/// Error state with a Retry button (so a transient failure isn't permanent).
+class _ErrorRetry extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _ErrorRetry({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off, size: 48.sp, color: AppColors.textDim),
+            SizedBox(height: 12.h),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
+            ),
+            SizedBox(height: 16.h),
+            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
   }
 }
 
