@@ -8,6 +8,7 @@ import '../../core/models/patient_profile.dart';
 import '../home/home_vm.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/rate_sheet.dart';
 import '../../core/widgets/star_row.dart';
 import 'journey_vm.dart';
 
@@ -55,8 +56,14 @@ class _JourneyScreenState extends State<JourneyScreen> {
                     number: i + 1,
                     stage: vm.stages[i],
                     isLast: i == vm.stages.length - 1,
-                    onRate: (rating) {
-                      vm.rateStage(vm.stages[i].id, rating);
+                    onRate: () async {
+                      final rating = await RateSheet.show(
+                        context,
+                        stageTitle: vm.stages[i].title,
+                      );
+                      if (rating != null) {
+                        vm.rateStage(vm.stages[i].id, rating);
+                      }
                     },
                   ),
                 SizedBox(height: 8.h),
@@ -183,7 +190,7 @@ class _StageRow extends StatelessWidget {
   final int number;
   final VisitStage stage;
   final bool isLast;
-  final ValueChanged<int> onRate;
+  final VoidCallback onRate;
 
   const _StageRow({
     required this.number,
@@ -192,117 +199,165 @@ class _StageRow extends StatelessWidget {
     required this.onRate,
   });
 
+  bool get _isDone => stage.status == 'done';
+  bool get _isCurrent => stage.status == 'current';
+
+  Color get _dotColor {
+    if (_isDone) return AppColors.teal;
+    if (_isCurrent) return AppColors.blue;
+    return AppColors.border2;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDone = stage.status == 'done';
-    final isCurrent = stage.status == 'current';
+    final detailLine = stage.time.isEmpty
+        ? stage.detail
+        : stage.detail.isEmpty
+        ? stage.time
+        : '${stage.time} · ${stage.detail}';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Timeline number + small circle
-            SizedBox(
-              width: 44.w,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 16.w,
-                        height: 16.w,
-                        decoration: BoxDecoration(
-                          color: isDone
-                              ? AppColors.teal
-                              : isCurrent
-                              ? AppColors.blue
-                              : AppColors.border,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 22.w,
+            child: Column(
+              children: [
+                SizedBox(height: 4.h),
+                Container(
+                  width: 13.r,
+                  height: 13.r,
+                  decoration: BoxDecoration(
+                    color: _dotColor,
+                    shape: BoxShape.circle,
                   ),
-                  if (!isLast)
-                    Container(
-                      margin: EdgeInsets.only(top: 4.h),
-                      width: 2.w,
-                      height: 52.h,
-                      color: AppColors.border,
-                    ),
-                ],
-              ),
+                ),
+                if (!isLast)
+                  Expanded(
+                    child: Container(width: 2.w, color: AppColors.border2),
+                  ),
+              ],
             ),
-            SizedBox(width: 12.w),
-            // Stage content
-            Expanded(
+          ),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 20.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '$number. ${stage.title}',
                     style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
                       color: AppColors.text,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (stage.detail.isNotEmpty || stage.time.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.only(top: 4.h),
-                      child: Text(
-                        '${stage.detail.isNotEmpty ? stage.detail : ''}${stage.detail.isNotEmpty && stage.time.isNotEmpty ? ' · ' : ''}${stage.time}',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: AppColors.textMuted,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  if (detailLine.isNotEmpty) ...[
+                    SizedBox(height: 2.h),
+                    Text(
+                      detailLine,
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12.sp,
                       ),
                     ),
-                  if (isCurrent || stage.status == 'upcoming')
-                    Padding(
-                      padding: EdgeInsets.only(top: 8.h),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isCurrent
-                              ? AppColors.bluePale
-                              : AppColors.bgSoft,
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: Text(
-                          isCurrent ? 'Happening now' : 'Upcoming',
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            color: isCurrent
-                                ? AppColors.blue
-                                : AppColors.textMuted,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (isDone)
-                    Padding(
-                      padding: EdgeInsets.only(top: 12.h),
-                      child: StarRow(
-                        rating: stage.rating,
-                        size: 16,
-                        onTap: onRate,
-                      ),
-                    ),
-                  SizedBox(height: 16.h),
+                  ],
+                  SizedBox(height: 8.h),
+                  _control(),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _control() {
+    if (_isDone && stage.rating > 0) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          StarRow(rating: stage.rating, size: 15, onTap: (_) => onRate()),
+          SizedBox(height: 6.h),
+          Text(
+            'Tap to edit rating',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 12.sp),
+          ),
+        ],
+      );
+    }
+
+    if (_isDone) {
+      return GestureDetector(
+        onTap: onRate,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.border2),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Text(
+            'Rate this stage',
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_isCurrent) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: AppColors.bluePale,
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8.r,
+              height: 8.r,
+              decoration: const BoxDecoration(
+                color: AppColors.blue,
+                shape: BoxShape.circle,
+              ),
+            ),
+            SizedBox(width: 6.w),
+            Text(
+              'Happening now',
+              style: TextStyle(
+                color: AppColors.blue,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
-      ],
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: AppColors.border,
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Text(
+        'Upcoming',
+        style: TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

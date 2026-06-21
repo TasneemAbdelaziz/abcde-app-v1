@@ -1,4 +1,5 @@
 import '../models/app_notification.dart';
+import '../models/financial_file.dart';
 import '../models/patient_profile.dart';
 import '../models/patient_visit.dart';
 import '../models/vitals_reading.dart';
@@ -76,6 +77,21 @@ class PatientApiRepository {
       return data.whereType<Map<String, dynamic>>().toList();
     }
     return <Map<String, dynamic>>[];
+  }
+
+  /// Gets the current visit financial file for the patient.
+  Future<FinancialFile?> getFinancialFile(String serial) async {
+    try {
+      final res = await _api.getJson('/visits/%23$serial/financial-file');
+      final data = res['data'];
+      if (data is Map<String, dynamic>) {
+        return FinancialFile.fromJson(data);
+      }
+      return null;
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return null;
+      rethrow;
+    }
   }
 
   /// The most recent vital-sign reading for the patient's visit, or null.

@@ -124,7 +124,13 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeVm(patientApi)),
         ChangeNotifierProvider(create: (_) => TreatmentVm(repo)),
         ChangeNotifierProvider(create: (_) => JourneyVm(patientApi)),
-        ChangeNotifierProvider(create: (_) => ReportsVm(repo)),
+        ChangeNotifierProvider(
+          create: (ctx) => ReportsVm(
+            ctx.read<PatientRepository>(),
+            ctx.read<PatientApiRepository>(),
+            ctx.read<HomeVm>(),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => DiagnosisVm(careApi)),
         ChangeNotifierProvider(create: (_) => MedicinesVm(careApi)),
         ChangeNotifierProvider(create: (_) => VisitsVm(careApi)),

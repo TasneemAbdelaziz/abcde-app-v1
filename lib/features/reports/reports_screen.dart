@@ -126,6 +126,37 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildFinancialSummary() {
+    final vm = context.watch<ReportsVm>();
+    if (vm.financialLoading) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(24.r),
+          border: Border.all(color: AppColors.border),
+          boxShadow: AppTheme.shadow,
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final file = vm.financialFile;
+    if (file == null || file.items.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(24.r),
+          border: Border.all(color: AppColors.border),
+          boxShadow: AppTheme.shadow,
+        ),
+        child: Text(
+          'No billing details available for this visit.',
+          style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       decoration: BoxDecoration(
@@ -146,43 +177,59 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          _buildBillingRow('Admission & room (CCU)', 'EGP 4,200'),
+          for (int index = 0; index < file.items.length; index++) ...[
+            _buildBillingRow(
+              file.items[index].description,
+              _formatCurrency(file.items[index].lineTotal),
+            ),
+            if (index < file.items.length - 1) _buildDivider(),
+          ],
+          SizedBox(height: 16.h),
           _buildDivider(),
-          _buildBillingRow('Catheterization procedure', 'EGP 18,500'),
-          _buildDivider(),
-          _buildBillingRow('Laboratory & imaging', 'EGP 2,150'),
-          _buildDivider(),
-          _buildBillingRow('Medication', 'EGP 980'),
-          _buildDivider(),
+          SizedBox(height: 16.h),
           _buildBillingRow(
             'Insurance coverage',
-            '- EGP 19,800',
+            '- ${_formatCurrency(file.totals.coveredByInsurance)}',
             valueColor: AppColors.green,
           ),
-          SizedBox(height: 16.h),
           _buildDivider(),
-          SizedBox(height: 16.h),
-          _buildBillingRow(
-            'Amount due',
-            'EGP 6,030',
-            valueColor: AppColors.blueDeep,
-            labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
-            valueStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
-          ),
+          _buildBillingRow('Amount due', _formatCurrency(file.totals.paid)),
+          if (file.totals.outstanding > 0) ...[
+            _buildDivider(),
+            _buildBillingRow(
+              'Amount due',
+              _formatCurrency(file.totals.outstanding),
+              valueColor: AppColors.blueDeep,
+              labelStyle: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+              ),
+              valueStyle: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
           SizedBox(height: 24.h),
           SizedBox(
-            height: 48.h,
+            height: 52.h,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () => _showPaymentSuccessDialog(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.blue,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
+                  borderRadius: BorderRadius.circular(18.r),
                 ),
+                elevation: 0,
+                padding: EdgeInsets.zero,
               ),
               child: Text(
                 'Pay Now',
-                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -225,6 +272,40 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildDivider() {
     return Divider(color: AppColors.border, thickness: 1, height: 0);
+  }
+
+  String _formatCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: 'EGP ',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  void _showPaymentSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Payment Successful',
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Your bill has been paid successfully.',
+          style: TextStyle(fontSize: 14.sp, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: TextStyle(fontSize: 14.sp, color: AppColors.blue),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
