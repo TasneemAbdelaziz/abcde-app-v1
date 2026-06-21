@@ -29,4 +29,5 @@ class Routes {
   static const String diagnosis = '/diagnosis';
   static const String medicines = '/medicines';
   static const String visits = '/visits';
+  static const String rating = '/rating';
 }

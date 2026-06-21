@@ -96,7 +96,7 @@ class _GreetingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = vm.profile;
-    
+
     final name = (p?.name.isNotEmpty ?? false) ? p!.name : 'Patient';
 
     // "56 yrs · Female · Emergency Bay 2"
@@ -106,8 +106,9 @@ class _GreetingCard extends StatelessWidget {
       if (p != null && p.genderLabel.isNotEmpty) p.genderLabel,
       if (room.isNotEmpty) room,
     ];
-    final condition =
-        (p != null && p.chronicConditions.isNotEmpty) ? p.chronicConditions : null;
+    final condition = (p != null && p.chronicConditions.isNotEmpty)
+        ? p.chronicConditions
+        : null;
 
     return Container(
       padding: EdgeInsets.all(18.w),
@@ -209,8 +210,7 @@ class _NotificationBell extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Icon(Icons.notifications_none,
-                color: Colors.white, size: 26.sp),
+            Icon(Icons.notifications_none, color: Colors.white, size: 26.sp),
             if (unread > 0)
               Positioned(
                 right: 0,
@@ -525,7 +525,7 @@ class _MyHealthGrid extends StatelessWidget {
         icon: Icons.star_outline,
         color: AppColors.amber,
         label: 'Rating',
-        onTap: () => RateSheet.show(context, stageTitle: 'My Care'),
+        onTap: () => Navigator.pushNamed(context, Routes.rating),
       ),
       _FeatureTile(
         icon: Icons.lightbulb_outline,
@@ -640,10 +640,7 @@ class _ErrorState extends StatelessWidget {
         ),
         SizedBox(height: 16.h),
         Center(
-          child: OutlinedButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          child: OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
         ),
       ],
     );
