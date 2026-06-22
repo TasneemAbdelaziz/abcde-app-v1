@@ -39,6 +39,13 @@ class LocaleController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Applies a language code coming from the backend (e.g. the patient's
+  /// `preferred_language`), but only if we actually support it.
+  void setLanguageCode(String code) {
+    if (code.isEmpty) return;
+    if (supported.any((l) => l.code == code)) setLocale(Locale(code));
+  }
+
   /// Looks up a translated string for the current language.
   String t(String key) {
     final lang = _strings[code] ?? _strings['en']!;

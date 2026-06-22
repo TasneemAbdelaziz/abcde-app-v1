@@ -2,6 +2,7 @@ import '../models/app_notification.dart';
 import '../models/financial_file.dart';
 import '../models/patient_profile.dart';
 import '../models/patient_visit.dart';
+import '../models/report.dart';
 import '../models/vitals_reading.dart';
 import '../network/api_client.dart';
 
@@ -79,6 +80,21 @@ class PatientApiRepository {
     return <Map<String, dynamic>>[];
   }
 
+  /// Adds a family member / caregiver: `POST /patients/{serial}/family`.
+  Future<void> addFamilyMember(
+    String serial,
+    Map<String, dynamic> body,
+  ) async {
+    if (serial.isEmpty) return;
+    await _api.postJson('/patients/$serial/family', body);
+  }
+
+  /// Removes a family member: `DELETE /family/{id}`.
+  Future<void> deleteFamilyMember(String id) async {
+    if (id.isEmpty) return;
+    await _api.deleteJson('/family/$id');
+  }
+
   /// Gets the current visit financial file for the patient.
   Future<FinancialFile?> getFinancialFile(String serial) async {
     try {
@@ -141,6 +157,75 @@ class PatientApiRepository {
   /// Marks one notification read: `POST /notifications/{id}/read`.
   Future<void> markNotificationRead(String id) async {
     await _api.postJson('/notifications/$id/read', const {});
+  }
+
+  /// Lab + radiology results for the patient's visit, mapped to [Report]s.
+  /// `GET /visits/#{serial}/results`. Empty list if there's no open visit.
+  Future<List<Report>> getResults(String serial) async {
+    if (serial.isEmpty) return const [];
+    try {
+      final res = await _api.getJson('/visits/%23$serial/results');
+      final data = res['data'];
+      final out = <Report>[];
+      if (data is Map<String, dynamic>) {
+        for (final e in (data['lab_results'] as List? ?? const [])) {
+          if (e is Map<String, dynamic>) out.add(_labReport(e));
+        }
+        for (final e in (data['radiology_results'] as List? ?? const [])) {
+          if (e is Map<String, dynamic>) out.add(_radiologyReport(e));
+        }
+      }
+      return out;
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return const [];
+      rethrow;
+    }
+  }
+
+  Report _labReport(Map<String, dynamic> j) {
+    final value = (j['result_value'] ?? '').toString();
+    final unit = (j['unit'] ?? '').toString();
+    final flag = (j['flag'] ?? '').toString().toUpperCase();
+    final flagLabel = flag == 'H'
+        ? ' · High'
+        : flag == 'L'
+            ? ' · Low'
+            : '';
+    return Report(
+      id: 'lab-${j['id']}',
+      title: (j['test_name'] ?? 'Lab test').toString(),
+      subtitle: '$value $unit$flagLabel'.trim(),
+      date: (j['resulted_at'] ?? j['ordered_at'] ?? '').toString(),
+      type: 'lab',
+    );
+  }
+
+  Report _radiologyReport(Map<String, dynamic> j) {
+    return Report(
+      id: 'rad-${j['id']}',
+      title: (j['study'] ?? 'Imaging study').toString(),
+      subtitle: (j['report_summary'] ?? '').toString(),
+      date: (j['resulted_at'] ?? j['ordered_at'] ?? '').toString(),
+      type: 'imaging',
+    );
+  }
+
+  /// Saves the patient's preferred language to the backend:
+  /// `PUT /patients/{serial}/preferences` with `{ preferred_language }`.
+  Future<void> setPreferredLanguage(String serial, String code) async {
+    if (serial.isEmpty) return;
+    await _api.putJson('/patients/$serial/preferences', {
+      'preferred_language': code,
+    });
+  }
+
+  /// Submits a star rating for a care-journey stage:
+  /// `POST /stages/{id}/feedback` with `{ stars, comment }`.
+  Future<void> rateStage(String stageId, int stars, {String comment = ''}) async {
+    await _api.postJson('/stages/$stageId/feedback', {
+      'stars': stars,
+      if (comment.isNotEmpty) 'comment': comment,
+    });
   }
 
   int _unreadOf(dynamic data) {

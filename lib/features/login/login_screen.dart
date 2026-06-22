@@ -42,6 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
         : await vm.submitQr(_qrCtrl.text);
 
     if (session != null && mounted) {
+      // Adopt the patient's preferred language from the backend.
+      context.read<LocaleController>().setLanguageCode(session.user.locale);
       // Start polling for notifications (live bell badge + heads-up banners).
       context.read<NotificationCenter>().start();
       // Logged in â go to Home and clear the auth screens from the stack.

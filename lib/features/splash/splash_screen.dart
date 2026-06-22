@@ -70,6 +70,7 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _boot() async {
     final auth = context.read<AuthRepository>();
     final notifications = context.read<NotificationCenter>();
+    final locale = context.read<LocaleController>();
     final navigator = Navigator.of(context);
 
     final restore = auth.tryRestore();
@@ -79,6 +80,8 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (loggedIn) {
+      // Adopt the patient's preferred language from the backend.
+      locale.setLanguageCode(auth.currentSession?.user.locale ?? '');
       notifications.start();
       navigator.pushReplacementNamed(Routes.home);
     } else if (AppPrefs.onboardingSeen) {

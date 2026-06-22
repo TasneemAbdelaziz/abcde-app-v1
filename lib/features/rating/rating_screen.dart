@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/star_row.dart';
 
 class RatingScreen extends StatefulWidget {
   const RatingScreen({super.key});
@@ -14,8 +15,32 @@ class RatingScreen extends StatefulWidget {
 
 class _RatingScreenState extends State<RatingScreen> {
   int _selectedTab = 0;
-  double _rating = 3.0;
+  int _stars = 0; // 0 = not rated yet
   String _comment = '';
+
+  /// Opens the overall-rating bottom sheet (5 stars + optional comment).
+  Future<void> _openOverallSheet() async {
+    final result = await OverallRateSheet.show(
+      context,
+      initialStars: _stars,
+      initialComment: _comment,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _stars = result.stars;
+      _comment = result.comment;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Thanks! You rated your care $_stars '
+          '${_stars == 1 ? 'star' : 'stars'}.'
+          '${_comment.isEmpty ? '' : ' Comment saved.'}',
+        ),
+      ),
+    );
+    // TODO: send to the backend once an overall-rating endpoint exists.
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +120,7 @@ class _RatingScreenState extends State<RatingScreen> {
   }
 
   Widget _buildOverallRating() {
+    final rated = _stars > 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -118,72 +144,45 @@ class _RatingScreenState extends State<RatingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                _rating.toStringAsFixed(1),
-                style: TextStyle(
-                  color: AppColors.blueDeep,
-                  fontSize: 42.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  final filled = index < _rating.round();
-                  return Icon(
-                    filled ? Icons.star_rounded : Icons.star_outline,
-                    size: 28.sp,
-                    color: filled ? AppColors.amber : AppColors.textMuted,
-                  );
-                }),
-              ),
-              SizedBox(height: 24.h),
-              Slider(
-                value: _rating,
-                min: 1,
-                max: 5,
-                divisions: 4,
-                label: _rating.toStringAsFixed(0),
-                activeColor: AppColors.blue,
-                inactiveColor: AppColors.border,
-                onChanged: (value) => setState(() => _rating = value),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                'Drag the slider to choose your rating',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12.sp),
-              ),
-              SizedBox(height: 18.h),
-              TextField(
-                onChanged: (value) => setState(() => _comment = value),
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'Add a comment (optional)',
-                  filled: true,
-                  fillColor: AppColors.bgSoft,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                    borderSide: BorderSide(color: AppColors.border),
+              if (rated) ...[
+                Text(
+                  '$_stars.0',
+                  style: TextStyle(
+                    color: AppColors.blueDeep,
+                    fontSize: 42.sp,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
+                SizedBox(height: 8.h),
+                StarRow(rating: _stars, size: 28),
+                if (_comment.isNotEmpty) ...[
+                  SizedBox(height: 12.h),
+                  Text(
+                    '“$_comment”',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 13.sp,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ] else ...[
+                Icon(Icons.star_outline, size: 44.sp, color: AppColors.textDim),
+                SizedBox(height: 8.h),
+                Text(
+                  "You haven't rated your overall care yet.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 13.sp),
+                ),
+              ],
               SizedBox(height: 20.h),
               SizedBox(
                 width: double.infinity,
                 height: 50.h,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Thanks! You rated your care ${_rating.toStringAsFixed(0)} stars.' +
-                              (_comment.isEmpty ? '' : ' Comment saved.'),
-                        ),
-                      ),
-                    );
-                  },
-                  child: const Text('Submit Rating'),
+                  onPressed: _openOverallSheet,
+                  child: Text(rated ? 'Edit rating' : 'Rate overall care'),
                 ),
               ),
             ],
@@ -215,6 +214,142 @@ class _RatingScreenState extends State<RatingScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The overall-care rating returned by the bottom sheet.
+typedef OverallRating = ({int stars, String comment});
+
+/// Bottom sheet for the overall care rating: a 5-star picker plus an optional
+/// comment. Returns the chosen [OverallRating], or null if dismissed.
+class OverallRateSheet extends StatefulWidget {
+  final int initialStars;
+  final String initialComment;
+
+  const OverallRateSheet({
+    super.key,
+    required this.initialStars,
+    required this.initialComment,
+  });
+
+  static Future<OverallRating?> show(
+    BuildContext context, {
+    int initialStars = 0,
+    String initialComment = '',
+  }) {
+    return showModalBottomSheet<OverallRating>(
+      context: context,
+      isScrollControlled: true, // lifts above the keyboard for the comment
+      backgroundColor: AppColors.bgCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+      ),
+      builder: (_) => OverallRateSheet(
+        initialStars: initialStars,
+        initialComment: initialComment,
+      ),
+    );
+  }
+
+  @override
+  State<OverallRateSheet> createState() => OverallRateSheetState();
+}
+
+class OverallRateSheetState extends State<OverallRateSheet> {
+  late int _stars = widget.initialStars;
+  late final TextEditingController _commentCtrl =
+      TextEditingController(text: widget.initialComment);
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // Sit above the keyboard when the comment field is focused.
+      padding: EdgeInsets.only(
+        left: 24.w,
+        right: 24.w,
+        top: 18.h,
+        bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Grab handle.
+          Container(
+            width: 40.w,
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: AppColors.border2,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Overall rating',
+            style: TextStyle(
+              color: AppColors.navy,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            'How would you rate your overall care?',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13.sp),
+          ),
+          SizedBox(height: 18.h),
+          // 5 tappable stars.
+          StarRow(
+            rating: _stars,
+            size: 40,
+            onTap: (value) => setState(() => _stars = value),
+          ),
+          SizedBox(height: 18.h),
+          TextField(
+            controller: _commentCtrl,
+            maxLines: 4,
+            minLines: 3,
+            style: TextStyle(fontSize: 14.sp, color: AppColors.text),
+            decoration: InputDecoration(
+              hintText: 'Add a comment (optional)',
+              hintStyle: TextStyle(color: AppColors.textDim, fontSize: 14.sp),
+              filled: true,
+              fillColor: AppColors.bgSoft,
+              contentPadding: EdgeInsets.all(14.w),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14.r),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14.r),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+            ),
+          ),
+          SizedBox(height: 20.h),
+          SizedBox(
+            width: double.infinity,
+            height: 50.h,
+            child: ElevatedButton(
+              // Disabled until at least one star is chosen.
+              onPressed: _stars == 0
+                  ? null
+                  : () => Navigator.pop(
+                        context,
+                        (stars: _stars, comment: _commentCtrl.text.trim()),
+                      ),
+              child: const Text('Submit Rating'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

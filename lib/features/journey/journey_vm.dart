@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/models/visit_stage.dart';
 import '../../core/models/patient_visit.dart';
 import '../../core/repositories/patient_api_repository.dart';
+import '../../core/storage/app_prefs.dart';
 
 /// ViewModel for the Journey screen. Loads the treatment stages and lets the
 /// patient rate a stage (see RateSheet in core/widgets).
@@ -81,19 +82,39 @@ class JourneyVm extends ChangeNotifier {
       id: id,
       title: title,
       status: status,
-      rating: 0,
+      // Show the locally-remembered rating (the API can't return it).
+      rating: AppPrefs.stageRating(id),
       time: time,
       detail: decision,
     );
   }
 
-  /// Stores a rating the patient gave to a stage.
-  void rateStage(String stageId, int rating) {
+  /// Stores a rating the patient gave to a stage and sends it to the backend
+  /// (`POST /stages/{id}/feedback`). Optimistic: shows the stars immediately,
+  /// rolls back if the request fails.
+  Future<void> rateStage(String stageId, int rating) async {
+    final previousRating = AppPrefs.stageRating(stageId);
     stages = [
       for (final s in stages)
         if (s.id == stageId) s.copyWith(rating: rating) else s,
     ];
     notifyListeners();
-    // TODO: persist the rating through the repository when the API exists.
+    // Remember it locally so the stars stay after leaving the page.
+    await AppPrefs.setStageRating(stageId, rating);
+
+    // Only timeline stages have a numeric id the backend can rate.
+    if (int.tryParse(stageId) == null) return;
+
+    try {
+      await _api.rateStage(stageId, rating);
+    } catch (_) {
+      // Roll back the optimistic update on failure.
+      await AppPrefs.setStageRating(stageId, previousRating);
+      stages = [
+        for (final s in stages)
+          if (s.id == stageId) s.copyWith(rating: previousRating) else s,
+      ];
+      notifyListeners();
+    }
   }
 }

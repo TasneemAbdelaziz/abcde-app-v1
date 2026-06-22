@@ -127,7 +127,6 @@ class AlameinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => JourneyVm(patientApi)),
         ChangeNotifierProvider(
           create: (ctx) => ReportsVm(
-            ctx.read<PatientRepository>(),
             ctx.read<PatientApiRepository>(),
             ctx.read<HomeVm>(),
           ),
@@ -149,7 +148,10 @@ class AlameinApp extends StatelessWidget {
         // Consumer so MaterialApp rebuilds (and re-localizes) when the user
         // switches language from the globe picker.
         builder: (context, child) => Consumer<LocaleController>(
-          builder: (context, localeCtrl, _) => MaterialApp(
+          builder: (context, localeCtrl, _) {
+            // Keep the API language in sync so the backend localizes responses.
+            api.lang = localeCtrl.code;
+            return MaterialApp(
             title: 'Alamein Model Hospital — Patient Portal',
             theme: AppTheme.light(),
             debugShowCheckedModeBanner: false,
@@ -194,7 +196,8 @@ class AlameinApp extends StatelessWidget {
               Routes.medicines: (_) => const MedicinesScreen(),
               Routes.rating: (_) => const RatingScreen(),
             },
-          ),
+            );
+          },
         ),
       ),
     );

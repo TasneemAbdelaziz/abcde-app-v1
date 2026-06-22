@@ -43,6 +43,10 @@ class ApiClient {
   /// silent token-restore check on startup, where the splash handles routing.
   bool suppressAuthRedirect = false;
 
+  /// Current app language (e.g. 'ar'). Appended as `?lang=` to every request so
+  /// the backend returns localized text. Set from the LocaleController.
+  String? lang;
+
   ApiClient({http.Client? httpClient})
       : _http = httpClient ?? buildHttpClient();
 
@@ -66,12 +70,34 @@ class ApiClient {
         ));
   }
 
+  /// PUT [path] with a JSON [body]; returns the decoded JSON map.
+  Future<Map<String, dynamic>> putJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    return _send(() => _http.put(
+          _uri(path),
+          headers: _headers(json: true),
+          body: jsonEncode(body),
+        ));
+  }
+
   /// GET [path]; returns the decoded JSON map.
   Future<Map<String, dynamic>> getJson(String path) async {
     return _send(() => _http.get(_uri(path), headers: _headers()));
   }
 
-  Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
+  /// DELETE [path]; returns the decoded JSON map.
+  Future<Map<String, dynamic>> deleteJson(String path) async {
+    return _send(() => _http.delete(_uri(path), headers: _headers()));
+  }
+
+  Uri _uri(String path) {
+    final url = '${ApiConfig.baseUrl}$path';
+    if (lang == null || lang!.isEmpty) return Uri.parse(url);
+    final sep = path.contains('?') ? '&' : '?';
+    return Uri.parse('$url${sep}lang=$lang');
+  }
 
   /// Runs [request], validates the status, and decodes the JSON body.
   Future<Map<String, dynamic>> _send(

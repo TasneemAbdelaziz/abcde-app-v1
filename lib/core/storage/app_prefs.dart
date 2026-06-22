@@ -29,4 +29,17 @@ class AppPrefs {
       _prefs.setString(_kAuthToken, token);
 
   static Future<void> clearAuthToken() => _prefs.remove(_kAuthToken);
+
+  // --- Care-journey stage ratings -------------------------------------------
+  // The backend saves stage ratings but doesn't expose a way to read them back,
+  // so we mirror them locally to keep the stars visible after leaving the page.
+
+  static String _stageKey(String stageId) => 'stage_rating_$stageId';
+
+  /// Saved stars for a stage (1..5), or 0 if not rated yet.
+  static int stageRating(String stageId) =>
+      _prefs.getInt(_stageKey(stageId)) ?? 0;
+
+  static Future<void> setStageRating(String stageId, int stars) =>
+      _prefs.setInt(_stageKey(stageId), stars);
 }

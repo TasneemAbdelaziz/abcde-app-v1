@@ -9,7 +9,7 @@ import '../../core/notifications/notification_center.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
-import '../../core/widgets/rate_sheet.dart';
+import '../rating/rating_screen.dart';
 import 'home_vm.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -525,7 +525,19 @@ class _MyHealthGrid extends StatelessWidget {
         icon: Icons.star_outline,
         color: AppColors.amber,
         label: 'Rating',
-        onTap: () => Navigator.pushNamed(context, Routes.rating),
+        onTap: () async {
+          final r = await OverallRateSheet.show(context);
+          if (r != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Thanks! You rated your care ${r.stars} '
+                  '${r.stars == 1 ? 'star' : 'stars'}.',
+                ),
+              ),
+            );
+          }
+        },
       ),
       _FeatureTile(
         icon: Icons.lightbulb_outline,

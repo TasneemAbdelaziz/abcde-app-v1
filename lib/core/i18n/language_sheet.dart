@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../repositories/auth_repository.dart';
+import '../repositories/patient_api_repository.dart';
 import '../theme/app_theme.dart';
 import 'locale_controller.dart';
 
 /// Shared bottom sheet for switching the app language. Used by the BrandBar
 /// globe and the onboarding globe so they behave identically.
+///
+/// On change it updates the in-app language AND saves it to the backend
+/// (`PUT /patients/{serial}/preferences`) so the choice sticks server-side.
 Future<void> showLanguageSheet(BuildContext context) async {
   final ctrl = context.read<LocaleController>();
+  final auth = context.read<AuthRepository>();
+  final repo = context.read<PatientApiRepository>();
 
   await showModalBottomSheet<void>(
     context: context,
@@ -49,6 +56,13 @@ Future<void> showLanguageSheet(BuildContext context) async {
               onTap: () {
                 ctrl.setLocale(lang.locale);
                 Navigator.pop(sheetCtx);
+                // Persist the choice to the backend (best-effort).
+                final serial = auth.currentSession?.user.serial ?? '';
+                if (serial.isNotEmpty) {
+                  repo
+                      .setPreferredLanguage(serial, lang.code)
+                      .catchError((Object _) {});
+                }
               },
             ),
           SizedBox(height: 8.h),

@@ -353,6 +353,15 @@ class _ReportCard extends StatelessWidget {
                     color: AppColors.text,
                   ),
                 ),
+                if (report.subtitle.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    report.subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13.sp, color: AppColors.text),
+                  ),
+                ],
                 SizedBox(height: 8.h),
                 Text(
                   '$typeLabel • ${_formatDate(report.date)}',

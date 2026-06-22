@@ -4,16 +4,30 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/models/visit.dart';
+import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import '../../core/widgets/star_row.dart';
-import 'care_journey_screen.dart';
 import 'visits_vm.dart';
 
 /// The patient's hospital visits. Only the active visit can be opened (it
 /// shows the Care Journey timeline); completed visits show their rating.
-class VisitsScreen extends StatelessWidget {
+class VisitsScreen extends StatefulWidget {
   const VisitsScreen({super.key});
+
+  @override
+  State<VisitsScreen> createState() => _VisitsScreenState();
+}
+
+class _VisitsScreenState extends State<VisitsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // (Re)load from the backend when the tab opens (authenticated by now).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<VisitsVm>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +36,71 @@ class VisitsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
       appBar: const BrandBar(title: 'My Visits'),
-      body: vm.loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
-              itemCount: vm.visits.length,
-              separatorBuilder: (_, __) => SizedBox(height: 14.h),
-              itemBuilder: (_, i) => _VisitCard(visit: vm.visits[i]),
+      body: _body(context, vm),
+    );
+  }
+
+  Widget _body(BuildContext context, VisitsVm vm) {
+    if (vm.loading && vm.visits.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (vm.error != null && vm.visits.isEmpty) {
+      return _VisitsMessage(
+        icon: Icons.cloud_off,
+        text: vm.error!,
+        onRetry: () => context.read<VisitsVm>().load(),
+      );
+    }
+    if (vm.visits.isEmpty) {
+      return _VisitsMessage(
+        icon: Icons.event_busy,
+        text: 'No visits yet.',
+        onRetry: () => context.read<VisitsVm>().load(),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: () => context.read<VisitsVm>().load(),
+      child: ListView.separated(
+        padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
+        itemCount: vm.visits.length,
+        separatorBuilder: (_, __) => SizedBox(height: 14.h),
+        itemBuilder: (_, i) => _VisitCard(visit: vm.visits[i]),
+      ),
+    );
+  }
+}
+
+/// Centered empty / error message with a Retry button.
+class _VisitsMessage extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final VoidCallback onRetry;
+  const _VisitsMessage({
+    required this.icon,
+    required this.text,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48.sp, color: AppColors.textDim),
+            SizedBox(height: 12.h),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
             ),
+            SizedBox(height: 16.h),
+            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -162,14 +233,11 @@ class _VisitCard extends StatelessWidget {
       ),
     );
 
-    // Only active visits open the Care Journey.
+    // Only active visits open the Care Journey — the SAME screen the Home
+    // "Care Journey → View" opens, so both show identical stages & ratings.
     if (!visit.isActive) return card;
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => CareJourneyScreen(visitId: visit.id),
-        ),
-      ),
+      onTap: () => Navigator.pushNamed(context, Routes.journey),
       child: card,
     );
   }

@@ -214,22 +214,41 @@ class FamilyVm extends ChangeNotifier {
     );
   }
 
-  void _addMember(String name, String relationship, String accessLevel) {
-    final initials = _getInitials(name);
-    final newMember = FamilyMember(
-      id: 'fm-${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      initials: initials,
-      role: relationship,
-      relationship: relationship,
-      status: 'pending',
-      accessLevel: accessLevel,
-      description: accessLevel == 'Full Access'
-          ? "Can act on patient's behalf"
-          : 'View status & receive alerts',
-    );
-    members.add(newMember);
-    notifyListeners();
+  /// The patient serial (from HomeVm.profile or /auth/me).
+  Future<String> _serial() async {
+    final fromHome = _home?.profile?.serial ?? '';
+    if (fromHome.isNotEmpty) return fromHome;
+    if (_api != null) return _api!.getMySerial();
+    return '';
+  }
+
+  /// Adds a family member via `POST /patients/{serial}/family`, then reloads.
+  Future<void> _addMember(
+    String name,
+    String relationship,
+    String accessLevel,
+  ) async {
+    final serial = await _serial();
+    final api = _api;
+    if (serial.isEmpty || api == null) return;
+
+    final fullAccess = accessLevel == 'Full Access';
+    try {
+      await api.addFamilyMember(serial, {
+        'companion_name': name,
+        'relation': relationship,
+        'companion_phone': '',
+        'can_see_status': true,
+        'receives_alerts': true,
+        'can_book': fullAccess,
+        'can_rate': true,
+        'can_raise_emergency': fullAccess,
+        'is_decision_maker': fullAccess,
+      });
+      await load();
+    } catch (_) {
+      // Keep the list as-is; the user can retry.
+    }
   }
 
   String _getInitials(String name) {
@@ -260,9 +279,19 @@ class FamilyVm extends ChangeNotifier {
     );
   }
 
-  void removeMember(String memberId) {
+  /// Removes a family member via `DELETE /family/{id}`. Optimistic.
+  Future<void> removeMember(String memberId) async {
+    final rawId = memberId.replaceFirst('fm-', '');
     members.removeWhere((m) => m.id == memberId);
     notifyListeners();
+
+    final api = _api;
+    if (api == null || rawId.isEmpty) return;
+    try {
+      await api.deleteFamilyMember(rawId);
+    } catch (_) {
+      await load(); // restore from server on failure
+    }
   }
 
   @override
