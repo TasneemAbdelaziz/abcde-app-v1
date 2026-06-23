@@ -85,6 +85,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
   }
 
   Widget _buildFormView(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -107,7 +108,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
             SizedBox(width: 12.w),
             Expanded(
               child: Text(
-                'Share your suggestions and opinions to help us improve the hospital.',
+                loc.t('dev_intro'),
                 style: TextStyle(
                   fontSize: 13.sp,
                   height: 1.5,
@@ -119,7 +120,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         ),
         SizedBox(height: 24.h),
         Text(
-          'Area of suggestion',
+          loc.t('dev_area'),
           style: TextStyle(
             fontSize: 13.sp,
             fontWeight: FontWeight.w600,
@@ -147,7 +148,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                     (area) => DropdownMenuItem<String>(
                       value: area.$1,
                       child: Text(
-                        area.$1,
+                        loc.t('area_${area.$2}'),
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: AppColors.text,
@@ -165,7 +166,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         ),
         SizedBox(height: 24.h),
         Text(
-          'Your suggestion',
+          loc.t('dev_suggestion'),
           style: TextStyle(
             fontSize: 13.sp,
             fontWeight: FontWeight.w600,
@@ -186,7 +187,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
             onChanged: (value) => setState(() => _suggestionText = value),
             style: TextStyle(fontSize: 14.sp, color: AppColors.text),
             decoration: InputDecoration(
-              hintText: 'Describe your idea to improve the hospital...',
+              hintText: loc.t('dev_hint'),
               hintStyle: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(16.w),
@@ -214,7 +215,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                     ),
                   )
                 : Text(
-                    'Submit Suggestion',
+                    loc.t('dev_submit'),
                     style:
                         TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
                   ),
@@ -225,6 +226,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
   }
 
   Widget _buildSuccessView(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -232,7 +234,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         Text('👏', style: TextStyle(fontSize: 52.sp)),
         SizedBox(height: 24.h),
         Text(
-          'Thank you!',
+          loc.t('dev_thanks'),
           style: TextStyle(
             fontSize: 24.sp,
             fontWeight: FontWeight.w700,
@@ -241,7 +243,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         ),
         SizedBox(height: 12.h),
         Text(
-          'Your suggestion has been sent to the hospital improvement team.',
+          loc.t('dev_thanks_body'),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14.sp,
@@ -268,7 +270,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
               ),
             ),
             child: Text(
-              'Home',
+              loc.t('nav_home'),
               style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
           ),

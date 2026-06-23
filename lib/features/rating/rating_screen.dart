@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/repositories/patient_api_repository.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
@@ -66,13 +67,7 @@ class _RatingScreenState extends State<RatingScreen> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Thanks! You rated your care $_stars '
-            '${_stars == 1 ? 'star' : 'stars'}.'
-            '${_comment.isEmpty ? '' : ' Comment saved.'}',
-          ),
-        ),
+        SnackBar(content: Text(context.read<LocaleController>().t('rate_thanks'))),
       );
     } catch (e) {
       if (!mounted) return;
@@ -89,7 +84,7 @@ class _RatingScreenState extends State<RatingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BrandBar(title: 'Rate care'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('rate_care_title')),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         child: Column(
@@ -115,7 +110,10 @@ class _RatingScreenState extends State<RatingScreen> {
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(children: [_buildTab('Overall', 0), _buildTab('Stages', 1)]),
+      child: Row(children: [
+        _buildTab(context.read<LocaleController>().t('rate_tab_overall'), 0),
+        _buildTab(context.read<LocaleController>().t('rate_tab_stages'), 1),
+      ]),
     );
   }
 
@@ -165,11 +163,12 @@ class _RatingScreenState extends State<RatingScreen> {
 
   Widget _buildOverallRating() {
     final rated = _stars > 0;
+    final loc = context.watch<LocaleController>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'How would you rate your overall care?',
+          loc.t('rate_q_overall'),
           style: TextStyle(
             color: AppColors.text,
             fontSize: 16.sp,
@@ -215,7 +214,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 Icon(Icons.star_outline, size: 44.sp, color: AppColors.textDim),
                 SizedBox(height: 8.h),
                 Text(
-                  "You haven't rated your overall care yet.",
+                  loc.t('rate_none'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textMuted, fontSize: 13.sp),
                 ),
@@ -226,7 +225,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 height: 50.h,
                 child: ElevatedButton(
                   onPressed: _openOverallSheet,
-                  child: Text(rated ? 'Edit rating' : 'Rate overall care'),
+                  child: Text(loc.t(rated ? 'rate_edit' : 'rate_cta')),
                 ),
               ),
             ],
@@ -237,11 +236,12 @@ class _RatingScreenState extends State<RatingScreen> {
   }
 
   Widget _buildStagesRating() {
+    final loc = context.watch<LocaleController>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Rate individual stages in your care journey',
+          loc.t('rate_stages_title'),
           style: TextStyle(
             color: AppColors.text,
             fontSize: 16.sp,
@@ -250,7 +250,7 @@ class _RatingScreenState extends State<RatingScreen> {
         ),
         SizedBox(height: 18.h),
         Text(
-          'Tap a stage from the Care Journey screen to rate it and leave stage-specific feedback.',
+          loc.t('rate_stages_hint'),
           style: TextStyle(
             color: AppColors.textMuted,
             fontSize: 12.sp,
@@ -313,6 +313,7 @@ class OverallRateSheetState extends State<OverallRateSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Padding(
       // Sit above the keyboard when the comment field is focused.
       padding: EdgeInsets.only(
@@ -335,7 +336,7 @@ class OverallRateSheetState extends State<OverallRateSheet> {
           ),
           SizedBox(height: 16.h),
           Text(
-            'Overall rating',
+            loc.t('rate_sheet_title'),
             style: TextStyle(
               color: AppColors.navy,
               fontSize: 18.sp,
@@ -344,7 +345,7 @@ class OverallRateSheetState extends State<OverallRateSheet> {
           ),
           SizedBox(height: 4.h),
           Text(
-            'How would you rate your overall care?',
+            loc.t('rate_q_overall'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textMuted, fontSize: 13.sp),
           ),
@@ -362,7 +363,7 @@ class OverallRateSheetState extends State<OverallRateSheet> {
             minLines: 3,
             style: TextStyle(fontSize: 14.sp, color: AppColors.text),
             decoration: InputDecoration(
-              hintText: 'Add a comment (optional)',
+              hintText: loc.t('rate_comment_hint'),
               hintStyle: TextStyle(color: AppColors.textDim, fontSize: 14.sp),
               filled: true,
               fillColor: AppColors.bgSoft,
@@ -389,7 +390,7 @@ class OverallRateSheetState extends State<OverallRateSheet> {
                         context,
                         (stars: _stars, comment: _commentCtrl.text.trim()),
                       ),
-              child: const Text('Submit Rating'),
+              child: Text(loc.t('rate_submit')),
             ),
           ),
         ],

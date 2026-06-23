@@ -23,6 +23,8 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
     LocalVideo(
       title: 'Understanding Coronary Catheterization',
       subtitle: 'What was done and why',
+      titleKey: 'ent_v1_title',
+      subKey: 'ent_v1_sub',
       duration: '3:24',
       assetPath: 'assets/videos/understanding_your_case.mp4',
       background: LinearGradient(
@@ -35,6 +37,8 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
     LocalVideo(
       title: 'Your Surgery Explained',
       subtitle: 'What to expect in the procedure',
+      titleKey: 'ent_v2_title',
+      subKey: 'ent_v2_sub',
       duration: '4:02',
       assetPath: 'assets/videos/your_surgery_explained.mp4',
       background: LinearGradient(
@@ -47,6 +51,8 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
     LocalVideo(
       title: 'Financials & Insurance',
       subtitle: 'How billing works and what to ask about',
+      titleKey: 'ent_v3_title',
+      subKey: 'ent_v3_sub',
       duration: '5:10',
       assetPath: 'assets/videos/Financial.mp4',
       background: LinearGradient(
@@ -91,12 +97,13 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
   }
 
   Widget _buildRelaxContent() {
+    final loc = context.watch<LocaleController>();
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'GAMES',
+            loc.t('games'),
             style: TextStyle(
               color: AppColors.text,
               fontSize: 12.sp,
@@ -109,10 +116,12 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
             spacing: 12.w,
             runSpacing: 12.h,
             children: [
-              _buildGameCard('Puzzle', Icons.extension_rounded, AppColors.teal),
-              _buildGameCard('Memory', Icons.memory_rounded, AppColors.blue),
               _buildGameCard(
-                'Breathing',
+                  loc.t('game_puzzle'), Icons.extension_rounded, AppColors.teal),
+              _buildGameCard(
+                  loc.t('game_memory'), Icons.memory_rounded, AppColors.blue),
+              _buildGameCard(
+                loc.t('game_breathing'),
                 Icons.self_improvement_rounded,
                 AppColors.amber,
               ),
@@ -120,7 +129,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
           ),
           SizedBox(height: 24.h),
           Text(
-            'MUSIC',
+            loc.t('music'),
             style: TextStyle(
               color: AppColors.text,
               fontSize: 12.sp,
@@ -129,9 +138,9 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
             ),
           ),
           SizedBox(height: 12.h),
-          _buildMusicTile('Calm Healing Tones', '4:20', isPlaying: false),
-          _buildMusicTile('Ocean Waves', '6:00', isPlaying: true),
-          _buildMusicTile('Soft Piano', '5:15', isPlaying: false),
+          _buildMusicTile(loc.t('music_calm'), '4:20', isPlaying: false),
+          _buildMusicTile(loc.t('music_ocean'), '6:00', isPlaying: true),
+          _buildMusicTile(loc.t('music_piano'), '5:15', isPlaying: false),
           SizedBox(height: 24.h),
         ],
       ),
@@ -227,7 +236,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
                   Padding(
                     padding: EdgeInsets.only(top: 4.h),
                     child: Text(
-                      'Playing',
+                      context.read<LocaleController>().t('playing'),
                       style: TextStyle(
                         color: AppColors.blue,
                         fontSize: 12.sp,
@@ -269,7 +278,10 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(children: [_buildTab('Learn', 0), _buildTab('Relax', 1)]),
+      child: Row(children: [
+        _buildTab(context.read<LocaleController>().t('tab_learn'), 0),
+        _buildTab(context.read<LocaleController>().t('tab_relax'), 1),
+      ]),
     );
   }
 
@@ -314,6 +326,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
   }
 
   Widget _buildVideoCard(BuildContext context, LocalVideo video) {
+    final loc = context.watch<LocaleController>();
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -365,7 +378,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
                   Text(video.icon, style: TextStyle(fontSize: 28.sp)),
                   const Spacer(),
                   Text(
-                    video.title,
+                    video.titleKey.isEmpty ? video.title : loc.t(video.titleKey),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16.sp,
@@ -374,7 +387,7 @@ class _EntertainmentScreenState extends State<EntertainmentScreen> {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    video.subtitle,
+                    video.subKey.isEmpty ? video.subtitle : loc.t(video.subKey),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 12.sp,
@@ -397,6 +410,8 @@ class LocalVideo {
   final String assetPath;
   final LinearGradient background;
   final String icon;
+  final String titleKey;
+  final String subKey;
 
   const LocalVideo({
     required this.title,
@@ -405,6 +420,8 @@ class LocalVideo {
     required this.assetPath,
     required this.background,
     required this.icon,
+    this.titleKey = '',
+    this.subKey = '',
   });
 }
 
@@ -460,20 +477,24 @@ class _EntertainmentVideoScreenState extends State<EntertainmentVideoScreen> {
   @override
   Widget build(BuildContext context) {
     final playing = _controller.value.isPlaying;
+    final loc = context.watch<LocaleController>();
+    final title = widget.video.titleKey.isEmpty
+        ? widget.video.title
+        : loc.t(widget.video.titleKey);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         foregroundColor: AppColors.text,
         elevation: 0,
-        title: Text(widget.video.title),
+        title: Text(title),
       ),
       body: _error != null
           ? Center(
               child: Padding(
                 padding: EdgeInsets.all(24.w),
                 child: Text(
-                  'Unable to load video:\n${widget.video.assetPath}\n\n$_error',
+                  '${loc.t('video_load_error')}\n${widget.video.assetPath}\n\n$_error',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.textMuted, fontSize: 14.sp),
                 ),

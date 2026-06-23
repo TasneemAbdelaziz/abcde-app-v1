@@ -20,11 +20,12 @@ class TreatmentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TreatmentVm>();
+    final loc = context.watch<LocaleController>();
     final p = vm.plan;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: BrandBar(title: context.watch<LocaleController>().t('title_treatment')),
+      appBar: BrandBar(title: loc.t('title_treatment')),
       body: (vm.loading || p == null)
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -39,12 +40,12 @@ class TreatmentScreen extends StatelessWidget {
                 _StatsRow(plan: p),
                 SizedBox(height: 18.h),
 
-                const _Label('YOUR SURGERY EXPLAINED'),
+                _Label(loc.t('tx_surgery')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: p.surgeryVideo),
                 SizedBox(height: 18.h),
 
-                const _Label('AFTER YOUR SURGERY'),
+                _Label(loc.t('tx_after')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: p.afterSurgeryVideo),
                 SizedBox(height: 16.h),
@@ -52,7 +53,7 @@ class TreatmentScreen extends StatelessWidget {
                 const _MyMedicinesButton(),
                 SizedBox(height: 18.h),
 
-                const _Label("TODAY'S MEDICINE TIMELINE"),
+                _Label(loc.t('tx_timeline')),
                 SizedBox(height: 12.h),
                 for (int i = 0; i < p.timeline.length; i++)
                   _DoseRow(
@@ -61,7 +62,7 @@ class TreatmentScreen extends StatelessWidget {
                   ),
                 SizedBox(height: 18.h),
 
-                const _Label("TODAY'S GOALS"),
+                _Label(loc.t('tx_goals')),
                 SizedBox(height: 10.h),
                 for (final g in p.goals) ...[
                   _GoalCard(goal: g),
@@ -69,7 +70,7 @@ class TreatmentScreen extends StatelessWidget {
                 ],
                 SizedBox(height: 8.h),
 
-                const _Label('UPCOMING'),
+                _Label(loc.t('tx_upcoming')),
                 SizedBox(height: 10.h),
                 for (final u in p.upcoming) ...[
                   _UpcomingCard(item: u),
@@ -143,6 +144,7 @@ class _RecoveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -162,7 +164,7 @@ class _RecoveryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "TODAY'S RECOVERY",
+                      loc.t('tx_recovery'),
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 11.sp,
@@ -183,7 +185,7 @@ class _RecoveryCard extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: 'Completed',
+                            text: loc.t('tx_completed'),
                             style: TextStyle(
                               color: AppColors.text,
                               fontSize: 14.sp,
@@ -195,7 +197,7 @@ class _RecoveryCard extends StatelessWidget {
                     ),
                     SizedBox(height: 2.h),
                     Text(
-                      '${plan.tasksCompleted} of ${plan.tasksTotal} tasks completed today',
+                      '${plan.tasksCompleted} ${loc.t('of')} ${plan.tasksTotal} ${loc.t('tx_tasks_completed')}',
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12.sp,
@@ -214,13 +216,13 @@ class _RecoveryCard extends StatelessWidget {
             children: [
               _legendDot(AppColors.blue),
               SizedBox(width: 6.w),
-              Text('Completed',
+              Text(loc.t('tx_completed'),
                   style:
                       TextStyle(color: AppColors.textMuted, fontSize: 11.sp)),
               SizedBox(width: 16.w),
               _legendDot(AppColors.bluePale2),
               SizedBox(width: 6.w),
-              Text('Remaining',
+              Text(loc.t('tx_remaining'),
                   style:
                       TextStyle(color: AppColors.textMuted, fontSize: 11.sp)),
             ],
@@ -307,6 +309,7 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Row(
       children: [
         Expanded(
@@ -314,7 +317,7 @@ class _StatsRow extends StatelessWidget {
             icon: Icons.schedule,
             iconColor: AppColors.green,
             value: plan.nextDose,
-            label: 'Next dose',
+            label: loc.t('tx_next_dose'),
           ),
         ),
         SizedBox(width: 10.w),
@@ -323,7 +326,7 @@ class _StatsRow extends StatelessWidget {
             icon: Icons.home_outlined,
             iconColor: AppColors.blue,
             value: plan.toDischarge,
-            label: 'To discharge',
+            label: loc.t('tx_to_discharge'),
           ),
         ),
         SizedBox(width: 10.w),
@@ -332,7 +335,7 @@ class _StatsRow extends StatelessWidget {
             icon: Icons.trending_up,
             iconColor: AppColors.amber,
             value: '${plan.adherencePercent}%',
-            label: 'Adherence',
+            label: loc.t('tx_adherence'),
           ),
         ),
       ],
@@ -414,6 +417,7 @@ class _VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return GestureDetector(
       onTap: () {
         if (video.available) {
@@ -424,7 +428,7 @@ class _VideoCard extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This video will be available soon.')),
+            SnackBar(content: Text(loc.t('video_unavailable'))),
           );
         }
       },
@@ -454,7 +458,7 @@ class _VideoCard extends StatelessWidget {
                               color: Colors.white.withValues(alpha: 0.85),
                               size: 28.sp),
                           SizedBox(height: 6.h),
-                          Text('Coming soon',
+                          Text(loc.t('coming_soon'),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.85),
                                 fontSize: 11.sp,
@@ -470,7 +474,7 @@ class _VideoCard extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Watch: ${video.title}',
+                      '${loc.t('watch')}: ${video.title}',
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -559,6 +563,7 @@ class _MyMedicinesButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return GestureDetector(
       onTap: () => Navigator.of(context).pushNamed(Routes.medicines),
       child: Container(
@@ -590,14 +595,14 @@ class _MyMedicinesButton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('My Medicines',
+                  Text(loc.t('my_medicines'),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w700,
                       )),
                   SizedBox(height: 2.h),
-                  Text('View all medicines with photos',
+                  Text(loc.t('tx_view_all_meds'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 12.sp,
@@ -623,6 +628,7 @@ class _DoseRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = _accent(dose.status);
+    final loc = context.watch<LocaleController>();
 
     return IntrinsicHeight(
       child: Row(
@@ -697,7 +703,7 @@ class _DoseRow extends StatelessWidget {
                           color: AppColors.textMuted, fontSize: 12.sp),
                     ),
                     SizedBox(height: 8.h),
-                    _statusPill(dose.status, accent),
+                    _statusPill(loc, dose.status, accent),
                   ],
                 ),
               ),
@@ -708,11 +714,11 @@ class _DoseRow extends StatelessWidget {
     );
   }
 
-  Widget _statusPill(DoseStatus status, Color accent) {
+  Widget _statusPill(LocaleController loc, DoseStatus status, Color accent) {
     final label = switch (status) {
-      DoseStatus.taken => 'Taken ✓',
-      DoseStatus.dueNow => 'Due now',
-      DoseStatus.upcoming => 'Upcoming',
+      DoseStatus.taken => loc.t('dose_taken'),
+      DoseStatus.dueNow => loc.t('dose_due'),
+      DoseStatus.upcoming => loc.t('dose_upcoming'),
     };
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
@@ -801,6 +807,7 @@ class _GoalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final done = goal.status == GoalStatus.done;
     final accent = done ? AppColors.green : AppColors.amber;
+    final loc = context.watch<LocaleController>();
 
     return Container(
       padding: EdgeInsets.all(14.w),
@@ -850,7 +857,7 @@ class _GoalCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
-              done ? 'Done' : 'Pending',
+              loc.t(done ? 'goal_done' : 'goal_pending'),
               style: TextStyle(
                 color: accent,
                 fontSize: 11.sp,
