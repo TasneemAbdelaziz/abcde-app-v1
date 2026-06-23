@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/models/medicine.dart';
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import 'medicines_vm.dart';
@@ -18,7 +19,7 @@ class MedicinesScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'My Medicines'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_medicines')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(

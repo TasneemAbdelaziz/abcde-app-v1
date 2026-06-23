@@ -30,4 +30,5 @@ class Routes {
   static const String medicines = '/medicines';
   static const String visits = '/visits';
   static const String rating = '/rating';
+  static const String alert = '/alert';
 }

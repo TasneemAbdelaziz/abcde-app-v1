@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/family_member.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -18,7 +19,7 @@ class FamilyScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'Family Members'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_family')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

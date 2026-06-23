@@ -11,6 +11,7 @@ import 'core/repositories/auth_repository.dart';
 import 'core/repositories/patient_api_repository.dart';
 import 'core/repositories/patient_care_api_repository.dart';
 import 'core/repositories/patient_repository.dart';
+import 'core/routing/deep_link_service.dart';
 import 'core/routing/routes.dart';
 import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
@@ -58,6 +59,8 @@ void main() async {
         rootNavigatorKey.currentState?.pushNamed(Routes.notifications),
   );
   runApp(const AlameinApp());
+  // Listen for deep links relayed from the paired watch.
+  DeepLinkService.init();
 }
 
 /// Root widget.

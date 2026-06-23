@@ -1,7 +1,9 @@
 // [UI] screen — owner: Product.
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 
@@ -88,7 +90,7 @@ class _AiAdvisorScreenState extends State<AiAdvisorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'AI Advisor'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_ai')),
       body: Column(
         children: [
           _buildAdvisorHeader(),

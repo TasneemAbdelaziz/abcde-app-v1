@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/visit.dart';
 import '../../core/models/visit_stage.dart';
 import '../../core/theme/app_theme.dart';
@@ -23,16 +24,17 @@ class CareJourneyScreen extends StatelessWidget {
     final visit = vm.visitById(visitId);
     final journey = visit?.journey;
 
+    final title = context.watch<LocaleController>().t('title_care_journey');
     if (journey == null) {
-      return const Scaffold(
-        appBar: BrandBar(title: 'Care Journey'),
-        body: Center(child: Text('Visit not found.')),
+      return Scaffold(
+        appBar: BrandBar(title: title),
+        body: const Center(child: Text('Visit not found.')),
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const BrandBar(title: 'Care Journey'),
+      appBar: BrandBar(title: title),
       body: ListView(
         padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
         children: [

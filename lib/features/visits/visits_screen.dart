@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/visit.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
@@ -35,7 +36,7 @@ class _VisitsScreenState extends State<VisitsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.bgSoft,
-      appBar: const BrandBar(title: 'My Visits'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_visits')),
       body: _body(context, vm),
     );
   }

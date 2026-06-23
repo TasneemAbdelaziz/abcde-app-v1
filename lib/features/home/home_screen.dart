@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/vital.dart';
 import '../../core/notifications/notification_center.dart';
 import '../../core/routing/routes.dart';
@@ -45,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _body(BuildContext context, HomeVm vm) {
+    final loc = context.watch<LocaleController>();
     if (vm.loading && vm.profile == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -57,14 +59,14 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         _GreetingCard(vm: vm),
         SizedBox(height: 22.h),
-        _SectionTitle('VITAL READINGS'),
+        _SectionTitle(loc.t('home_vitals')),
         SizedBox(height: 12.h),
         if (vm.hasVitals)
           _VitalsStrip(vitals: vm.vitals)
         else
-          const _EmptyHint('No recent vital readings.'),
+          _EmptyHint(loc.t('home_no_vitals')),
         SizedBox(height: 24.h),
-        _SectionTitle('MY HEALTH'),
+        _SectionTitle(loc.t('home_my_health')),
         SizedBox(height: 12.h),
         const _MyHealthGrid(),
       ],
@@ -79,11 +81,11 @@ class _GreetingCard extends StatelessWidget {
   final HomeVm vm;
   const _GreetingCard({required this.vm});
 
-  String get _greeting {
+  String _greeting(LocaleController loc) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (h < 12) return loc.t('greet_morning');
+    if (h < 17) return loc.t('greet_afternoon');
+    return loc.t('greet_evening');
   }
 
   String _orDash(String? v) => (v == null || v.isEmpty) ? '—' : v;
@@ -95,6 +97,7 @@ class _GreetingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     final p = vm.profile;
 
     final name = (p?.name.isNotEmpty ?? false) ? p!.name : 'Patient';
@@ -138,7 +141,7 @@ class _GreetingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$_greeting 👋',
+                      '${_greeting(loc)} 👋',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 12.sp,
@@ -179,12 +182,12 @@ class _GreetingCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _InfoChip(label: 'Admitted', value: _admitted(vm)),
+                child: _InfoChip(label: loc.t('admitted'), value: _admitted(vm)),
               ),
               SizedBox(width: 12.w),
               Expanded(
                 child: _InfoChip(
-                  label: 'Doctor',
+                  label: loc.t('doctor'),
                   value: _orDash(vm.visit?.doctorName),
                 ),
               ),
@@ -269,15 +272,16 @@ class _CareJourneyCard extends StatelessWidget {
   final HomeVm vm;
   const _CareJourneyCard({required this.vm});
 
-  String _journeyText(HomeVm vm) {
+  String _journeyText(HomeVm vm, LocaleController loc) {
     final stage = vm.visit?.stage;
-    if (stage == null) return 'Not in an active visit';
+    if (stage == null) return loc.t('not_in_visit');
     if (stage.index == 0) return stage.title; // unknown stage key
-    return 'Stage ${stage.index} of ${stage.total} · ${stage.title}';
+    return '${loc.t('stage')} ${stage.index} ${loc.t('of')} ${stage.total} · ${stage.title}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
@@ -291,7 +295,7 @@ class _CareJourneyCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Care Journey',
+                  loc.t('care_journey'),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 11.sp,
@@ -299,7 +303,7 @@ class _CareJourneyCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  _journeyText(vm),
+                  _journeyText(vm, loc),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 13.sp,
@@ -319,7 +323,7 @@ class _CareJourneyCard extends StatelessWidget {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: Text('View', style: TextStyle(fontSize: 12.sp)),
+            child: Text(loc.t('view'), style: TextStyle(fontSize: 12.sp)),
           ),
         ],
       ),
@@ -508,23 +512,24 @@ class _MyHealthGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     final tiles = <_FeatureTile>[
       _FeatureTile(
         icon: Icons.medical_services_outlined,
         color: AppColors.teal,
-        label: 'Diagnosis',
+        label: loc.t('tile_diagnosis'),
         onTap: () => Navigator.pushNamed(context, Routes.diagnosis),
       ),
       _FeatureTile(
         icon: Icons.healing_outlined,
         color: AppColors.green,
-        label: 'Treatment Plan',
+        label: loc.t('tile_treatment'),
         onTap: () => Navigator.pushNamed(context, Routes.treatment),
       ),
       _FeatureTile(
         icon: Icons.star_outline,
         color: AppColors.amber,
-        label: 'Rating',
+        label: loc.t('tile_rating'),
         onTap: () async {
           final r = await OverallRateSheet.show(context);
           if (r != null && context.mounted) {
@@ -542,13 +547,13 @@ class _MyHealthGrid extends StatelessWidget {
       _FeatureTile(
         icon: Icons.lightbulb_outline,
         color: AppColors.blue,
-        label: 'Development',
+        label: loc.t('tile_development'),
         onTap: () => Navigator.pushNamed(context, Routes.development),
       ),
       _FeatureTile(
         icon: Icons.play_circle_outline,
         color: AppColors.blueDeep,
-        label: 'Entertainment',
+        label: loc.t('tile_entertainment'),
         onTap: () => Navigator.pushNamed(context, Routes.entertainment),
       ),
     ];

@@ -55,6 +55,8 @@ class ApiClient {
       'Accept': 'application/json',
       if (json) 'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
+      // The backend localizes the response from this header (ar | ru | zh | en).
+      if (lang != null && lang!.isNotEmpty) 'X-locale': lang!,
     };
   }
 
@@ -92,12 +94,7 @@ class ApiClient {
     return _send(() => _http.delete(_uri(path), headers: _headers()));
   }
 
-  Uri _uri(String path) {
-    final url = '${ApiConfig.baseUrl}$path';
-    if (lang == null || lang!.isEmpty) return Uri.parse(url);
-    final sep = path.contains('?') ? '&' : '?';
-    return Uri.parse('$url${sep}lang=$lang');
-  }
+  Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
 
   /// Runs [request], validates the status, and decodes the JSON body.
   Future<Map<String, dynamic>> _send(

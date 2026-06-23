@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/visit_stage.dart';
 import '../../core/models/patient_profile.dart';
 import '../home/home_vm.dart';
@@ -39,7 +40,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
     final arrivalAt = visit?.arrivedAt;
 
     return Scaffold(
-      appBar: const BrandBar(title: 'Journey'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_journey')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(

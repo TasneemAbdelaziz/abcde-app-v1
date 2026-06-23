@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/models/diagnosis.dart';
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import 'diagnosis_video_screen.dart';
@@ -21,7 +22,7 @@ class DiagnosisScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const BrandBar(title: 'Diagnosis'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_diagnosis')),
       body: (vm.loading || dx == null)
           ? const Center(child: CircularProgressIndicator())
           : ListView(

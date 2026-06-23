@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/models/diagnosis.dart';
 import '../../core/models/treatment.dart';
 import '../../core/routing/routes.dart';
+import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import '../diagnosis/diagnosis_video_screen.dart';
@@ -23,7 +24,7 @@ class TreatmentScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: const BrandBar(title: 'Treatment Plan'),
+      appBar: BrandBar(title: context.watch<LocaleController>().t('title_treatment')),
       body: (vm.loading || p == null)
           ? const Center(child: CircularProgressIndicator())
           : ListView(
