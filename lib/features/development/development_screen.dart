@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/i18n/locale_controller.dart';
+import '../../core/repositories/patient_api_repository.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 
@@ -17,23 +18,55 @@ class DevelopmentScreen extends StatefulWidget {
 
 class _DevelopmentScreenState extends State<DevelopmentScreen> {
   final _suggestionController = TextEditingController();
-  final _areas = <String>[
-    'Patient Services',
-    'Facilities & Cleanliness',
-    'Staff & Communication',
-    'Waiting Time',
-    'Mobile App & Technology',
-    'Other',
+
+  // Display label → backend enum value (must match the API's `area` enum).
+  static const _areas = <(String, String)>[
+    ('Patient Services', 'patient_services'),
+    ('Facilities & Cleanliness', 'facilities'),
+    ('Staff & Communication', 'staff'),
+    ('Waiting Time', 'waiting_time'),
+    ('Mobile App & Technology', 'app_tech'),
+    ('Other', 'other'),
   ];
 
   String _selectedArea = 'Patient Services';
   String _suggestionText = '';
   bool _submitted = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
     _suggestionController.dispose();
     super.dispose();
+  }
+
+  /// Sends the suggestion to `POST /suggestions`, then shows the success view.
+  Future<void> _submit() async {
+    final text = _suggestionText.trim();
+    if (text.isEmpty || _submitting) return;
+
+    final area = _areas
+        .firstWhere((a) => a.$1 == _selectedArea, orElse: () => _areas.last)
+        .$2;
+
+    setState(() => _submitting = true);
+    try {
+      await context.read<PatientApiRepository>().submitSuggestion(
+            area: area,
+            suggestionText: text,
+          );
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _submitted = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not send your suggestion. $e')),
+      );
+    }
   }
 
   @override
@@ -112,9 +145,9 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
               items: _areas
                   .map(
                     (area) => DropdownMenuItem<String>(
-                      value: area,
+                      value: area.$1,
                       child: Text(
-                        area,
+                        area.$1,
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: AppColors.text,
@@ -164,20 +197,27 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         SizedBox(
           height: 52.h,
           child: ElevatedButton(
-            onPressed: _suggestionText.trim().isEmpty
-                ? null
-                : () {
-                    setState(() => _submitted = true);
-                  },
+            onPressed:
+                (_suggestionText.trim().isEmpty || _submitting) ? null : _submit,
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.r),
               ),
             ),
-            child: Text(
-              'Submit Suggestion',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
-            ),
+            child: _submitting
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    'Submit Suggestion',
+                    style:
+                        TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+                  ),
           ),
         ),
       ],
@@ -219,7 +259,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                 _submitted = false;
                 _suggestionController.clear();
                 _suggestionText = '';
-                _selectedArea = _areas.first;
+                _selectedArea = _areas.first.$1;
               });
             },
             style: ElevatedButton.styleFrom(

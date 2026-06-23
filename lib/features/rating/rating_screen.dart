@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/repositories/patient_api_repository.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -18,7 +20,29 @@ class _RatingScreenState extends State<RatingScreen> {
   int _stars = 0; // 0 = not rated yet
   String _comment = '';
 
-  /// Opens the overall-rating bottom sheet (5 stars + optional comment).
+  @override
+  void initState() {
+    super.initState();
+    // Load any existing overall rating so we can re-display it.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadExisting());
+  }
+
+  Future<void> _loadExisting() async {
+    try {
+      final existing =
+          await context.read<PatientApiRepository>().getOverallRating();
+      if (existing == null || !mounted) return;
+      setState(() {
+        _stars = existing.stars;
+        _comment = existing.comment;
+      });
+    } catch (_) {
+      // No rating yet / offline — leave the empty state.
+    }
+  }
+
+  /// Opens the overall-rating bottom sheet (5 stars + optional comment) and
+  /// saves the result to `POST /ratings/overall`.
   Future<void> _openOverallSheet() async {
     final result = await OverallRateSheet.show(
       context,
@@ -26,20 +50,40 @@ class _RatingScreenState extends State<RatingScreen> {
       initialComment: _comment,
     );
     if (result == null || !mounted) return;
+
+    // Optimistic UI; roll back the previous values if the save fails.
+    final prevStars = _stars;
+    final prevComment = _comment;
     setState(() {
       _stars = result.stars;
       _comment = result.comment;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Thanks! You rated your care $_stars '
-          '${_stars == 1 ? 'star' : 'stars'}.'
-          '${_comment.isEmpty ? '' : ' Comment saved.'}',
+
+    try {
+      await context.read<PatientApiRepository>().submitOverallRating(
+            stars: result.stars,
+            comment: result.comment,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Thanks! You rated your care $_stars '
+            '${_stars == 1 ? 'star' : 'stars'}.'
+            '${_comment.isEmpty ? '' : ' Comment saved.'}',
+          ),
         ),
-      ),
-    );
-    // TODO: send to the backend once an overall-rating endpoint exists.
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _stars = prevStars;
+        _comment = prevComment;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save your rating. $e')),
+      );
+    }
   }
 
   @override

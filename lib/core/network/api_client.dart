@@ -84,6 +84,18 @@ class ApiClient {
         ));
   }
 
+  /// PATCH [path] with a JSON [body]; returns the decoded JSON map.
+  Future<Map<String, dynamic>> patchJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    return _send(() => _http.patch(
+          _uri(path),
+          headers: _headers(json: true),
+          body: jsonEncode(body),
+        ));
+  }
+
   /// GET [path]; returns the decoded JSON map.
   Future<Map<String, dynamic>> getJson(String path) async {
     return _send(() => _http.get(_uri(path), headers: _headers()));

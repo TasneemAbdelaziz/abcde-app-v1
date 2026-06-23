@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../core/i18n/locale_controller.dart';
 import '../../core/models/vital.dart';
 import '../../core/notifications/notification_center.dart';
+import '../../core/repositories/patient_api_repository.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -531,15 +532,23 @@ class _MyHealthGrid extends StatelessWidget {
         color: AppColors.amber,
         label: loc.t('tile_rating'),
         onTap: () async {
+          final messenger = ScaffoldMessenger.of(context);
+          final repo = context.read<PatientApiRepository>();
           final r = await OverallRateSheet.show(context);
-          if (r != null && context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          if (r == null) return;
+          try {
+            await repo.submitOverallRating(stars: r.stars, comment: r.comment);
+            messenger.showSnackBar(
               SnackBar(
                 content: Text(
                   'Thanks! You rated your care ${r.stars} '
                   '${r.stars == 1 ? 'star' : 'stars'}.',
                 ),
               ),
+            );
+          } catch (e) {
+            messenger.showSnackBar(
+              SnackBar(content: Text('Could not save your rating. $e')),
             );
           }
         },

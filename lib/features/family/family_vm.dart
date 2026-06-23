@@ -79,6 +79,9 @@ class FamilyVm extends ChangeNotifier {
     final phone = (e['companion_phone'] ?? '').toString();
     final canSee = (e['can_see_status'] ?? false) as bool? ?? false;
     final receives = (e['receives_alerts'] ?? false) as bool? ?? false;
+    final canBook = (e['can_book'] ?? false) as bool? ?? false;
+    final canRate = (e['can_rate'] ?? false) as bool? ?? false;
+    final canEmergency = (e['can_raise_emergency'] ?? false) as bool? ?? false;
     final isDecision = (e['is_decision_maker'] ?? false) as bool? ?? false;
     final accepted = (e['is_accepted'] ?? false) as bool? ?? false;
 
@@ -106,7 +109,30 @@ class FamilyVm extends ChangeNotifier {
       status: status,
       accessLevel: accessLevel,
       description: description,
+      canSeeStatus: canSee,
+      receivesAlerts: receives,
+      canBook: canBook,
+      canRate: canRate,
+      canRaiseEmergency: canEmergency,
+      isDecisionMaker: isDecision,
     );
+  }
+
+  /// Updates a member's six permission flags via
+  /// `PATCH /family/{id}/permissions`, then reloads from the server.
+  Future<void> updatePermissions(
+    String memberId,
+    Map<String, dynamic> permissions,
+  ) async {
+    final rawId = memberId.replaceFirst('fm-', '');
+    final api = _api;
+    if (api == null || rawId.isEmpty) return;
+    try {
+      await api.updateFamilyPermissions(rawId, permissions);
+      await load();
+    } catch (_) {
+      await load(); // re-sync with the server on failure
+    }
   }
 
   void toggleVitals(bool value) {
@@ -159,60 +185,84 @@ class FamilyVm extends ChangeNotifier {
   }
 
   Future<void> addManually(BuildContext context) async {
-    // Show a dialog with form fields for manual member addition
+    // Manual add form: name, relationship, phone, and the six permission flags.
     String name = '';
     String relationship = '';
-    String accessLevel = 'View Only';
+    String phone = '';
+    final perms = <String, bool>{
+      'can_see_status': true,
+      'receives_alerts': true,
+      'can_book': false,
+      'can_rate': true,
+      'can_raise_emergency': false,
+      'is_decision_maker': false,
+    };
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Family Member'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: 'Name'),
-                onChanged: (value) => name = value,
-              ),
-              SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Relationship'),
-                onChanged: (value) => relationship = value,
-              ),
-              SizedBox(height: 16),
-              DropdownButton<String>(
-                value: accessLevel,
-                onChanged: (value) => accessLevel = value ?? 'View Only',
-                items: ['Full Access', 'View Only']
-                    .map(
-                      (level) =>
-                          DropdownMenuItem(value: level, child: Text(level)),
-                    )
-                    .toList(),
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) => AlertDialog(
+          title: const Text('Add Family Member'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  onChanged: (value) => name = value,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Relationship'),
+                  onChanged: (value) => relationship = value,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                  keyboardType: TextInputType.phone,
+                  onChanged: (value) => phone = value,
+                ),
+                const SizedBox(height: 8),
+                for (final entry in _permissionLabels.entries)
+                  SwitchListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(entry.value),
+                    value: perms[entry.key] ?? false,
+                    onChanged: (v) => setSheet(() => perms[entry.key] = v),
+                  ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (name.isNotEmpty && relationship.isNotEmpty) {
+                  _addMember(name, relationship, phone, Map.of(perms));
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (name.isNotEmpty && relationship.isNotEmpty) {
-                _addMember(name, relationship, accessLevel);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }
+
+  /// Human-readable labels for the six backend permission flags.
+  static const Map<String, String> _permissionLabels = {
+    'can_see_status': 'Can see care status',
+    'receives_alerts': 'Receives alerts',
+    'can_book': 'Can book appointments',
+    'can_rate': 'Can submit ratings',
+    'can_raise_emergency': 'Can raise emergency',
+    'is_decision_maker': 'Decision maker',
+  };
 
   /// The patient serial (from HomeVm.profile or /auth/me).
   Future<String> _serial() async {
@@ -226,24 +276,19 @@ class FamilyVm extends ChangeNotifier {
   Future<void> _addMember(
     String name,
     String relationship,
-    String accessLevel,
+    String phone,
+    Map<String, bool> permissions,
   ) async {
     final serial = await _serial();
     final api = _api;
     if (serial.isEmpty || api == null) return;
 
-    final fullAccess = accessLevel == 'Full Access';
     try {
       await api.addFamilyMember(serial, {
         'companion_name': name,
         'relation': relationship,
-        'companion_phone': '',
-        'can_see_status': true,
-        'receives_alerts': true,
-        'can_book': fullAccess,
-        'can_rate': true,
-        'can_raise_emergency': fullAccess,
-        'is_decision_maker': fullAccess,
+        'companion_phone': phone,
+        ...permissions,
       });
       await load();
     } catch (_) {

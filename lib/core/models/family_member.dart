@@ -9,6 +9,14 @@ class FamilyMember {
   final String accessLevel; // 'Full Access', 'View Only'
   final String description; // e.g. "Can act on patient's behalf"
 
+  // The six per-member permission flags from the backend.
+  final bool canSeeStatus;
+  final bool receivesAlerts;
+  final bool canBook;
+  final bool canRate;
+  final bool canRaiseEmergency;
+  final bool isDecisionMaker;
+
   const FamilyMember({
     required this.id,
     required this.name,
@@ -18,6 +26,12 @@ class FamilyMember {
     required this.status,
     required this.accessLevel,
     required this.description,
+    this.canSeeStatus = false,
+    this.receivesAlerts = false,
+    this.canBook = false,
+    this.canRate = false,
+    this.canRaiseEmergency = false,
+    this.isDecisionMaker = false,
   });
 
   FamilyMember copyWith({
@@ -29,6 +43,12 @@ class FamilyMember {
     String? status,
     String? accessLevel,
     String? description,
+    bool? canSeeStatus,
+    bool? receivesAlerts,
+    bool? canBook,
+    bool? canRate,
+    bool? canRaiseEmergency,
+    bool? isDecisionMaker,
   }) {
     return FamilyMember(
       id: id ?? this.id,
@@ -39,6 +59,12 @@ class FamilyMember {
       status: status ?? this.status,
       accessLevel: accessLevel ?? this.accessLevel,
       description: description ?? this.description,
+      canSeeStatus: canSeeStatus ?? this.canSeeStatus,
+      receivesAlerts: receivesAlerts ?? this.receivesAlerts,
+      canBook: canBook ?? this.canBook,
+      canRate: canRate ?? this.canRate,
+      canRaiseEmergency: canRaiseEmergency ?? this.canRaiseEmergency,
+      isDecisionMaker: isDecisionMaker ?? this.isDecisionMaker,
     );
   }
 }

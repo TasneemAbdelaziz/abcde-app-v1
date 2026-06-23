@@ -228,6 +228,88 @@ class PatientApiRepository {
     });
   }
 
+  /// Submits a patient improvement suggestion: `POST /suggestions`.
+  /// [area] must be one of the backend enums (patient_services, facilities,
+  /// staff, waiting_time, app_tech, other). The patient is resolved from the
+  /// bearer token, so no serial is sent.
+  Future<void> submitSuggestion({
+    required String area,
+    required String suggestionText,
+    String? ticketNo,
+  }) async {
+    await _api.postJson('/suggestions', {
+      'area': area,
+      'suggestion_text': suggestionText,
+      if (ticketNo != null && ticketNo.isNotEmpty) 'ticket_no': ticketNo,
+    });
+  }
+
+  /// Reads the patient's current overall-care rating: `GET /ratings/overall`.
+  /// Returns null when the patient hasn't rated yet (`data: null`).
+  Future<OverallRating?> getOverallRating() async {
+    try {
+      final res = await _api.getJson('/ratings/overall');
+      final data = res['data'];
+      if (data is Map<String, dynamic>) {
+        final stars = int.tryParse('${data['stars'] ?? 0}') ?? 0;
+        if (stars <= 0) return null;
+        return OverallRating(
+          stars: stars,
+          comment: (data['comment'] ?? '').toString(),
+        );
+      }
+      return null;
+    } on ApiException catch (e) {
+      if (e.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
+  /// Submits / updates the patient's overall-care rating:
+  /// `POST /ratings/overall` with `{ stars, comment, ticket_no }`. The backend
+  /// upserts (one rating per patient), so re-submitting edits the existing one.
+  Future<void> submitOverallRating({
+    required int stars,
+    String comment = '',
+    String? ticketNo,
+  }) async {
+    await _api.postJson('/ratings/overall', {
+      'stars': stars,
+      if (comment.isNotEmpty) 'comment': comment,
+      if (ticketNo != null && ticketNo.isNotEmpty) 'ticket_no': ticketNo,
+    });
+  }
+
+  /// Updates a family member's permissions:
+  /// `PATCH /family/{id}/permissions` with the six boolean flags.
+  Future<void> updateFamilyPermissions(
+    String id,
+    Map<String, dynamic> permissions,
+  ) async {
+    if (id.isEmpty) return;
+    await _api.patchJson('/family/$id/permissions', permissions);
+  }
+
+  /// Translates arbitrary free text via `POST /documentation/translate`.
+  /// Returns the translated text, or the original text on any problem.
+  Future<String> translateText(String text, String target) async {
+    if (text.isEmpty) return text;
+    try {
+      final res = await _api.postJson('/documentation/translate', {
+        'text': text,
+        'target': target,
+      });
+      final data = res['data'];
+      if (data is Map<String, dynamic>) {
+        final translated = (data['translated_text'] ?? '').toString();
+        if (translated.isNotEmpty) return translated;
+      }
+      return text;
+    } on ApiException {
+      return text;
+    }
+  }
+
   int _unreadOf(dynamic data) {
     if (data is Map<String, dynamic>) {
       final unread = data['unread'];
@@ -243,4 +325,11 @@ class NotificationsPage {
   final int unread;
   final List<AppNotification> items;
   const NotificationsPage({required this.unread, required this.items});
+}
+
+/// The patient's overall-care rating (1–5 stars + optional comment).
+class OverallRating {
+  final int stars;
+  final String comment;
+  const OverallRating({required this.stars, required this.comment});
 }

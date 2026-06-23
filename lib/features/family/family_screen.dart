@@ -296,7 +296,10 @@ class _FamilyMemberCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          Container(
+          GestureDetector(
+            onTap: () =>
+                _showPermissionsSheet(context, context.read<FamilyVm>(), member),
+            child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: member.accessLevel == 'View Only'
@@ -316,24 +319,123 @@ class _FamilyMemberCard extends StatelessWidget {
                         : AppColors.blueDeep,
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    member.accessLevel,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      member.accessLevel,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: member.accessLevel == 'View Only'
+                            ? AppColors.textMuted
+                            : AppColors.blue,
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.tune,
+                      size: 16.sp,
                       color: member.accessLevel == 'View Only'
                           ? AppColors.textMuted
                           : AppColors.blue,
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
+          ),
           ),
         ],
       ),
     );
   }
+}
+
+/// Bottom sheet that edits a family member's six permission flags and saves
+/// them via `PATCH /family/{id}/permissions`.
+Future<void> _showPermissionsSheet(
+  BuildContext context,
+  FamilyVm vm,
+  FamilyMember member,
+) async {
+  final perms = <String, bool>{
+    'can_see_status': member.canSeeStatus,
+    'receives_alerts': member.receivesAlerts,
+    'can_book': member.canBook,
+    'can_rate': member.canRate,
+    'can_raise_emergency': member.canRaiseEmergency,
+    'is_decision_maker': member.isDecisionMaker,
+  };
+  const labels = <String, String>{
+    'can_see_status': 'Can see care status',
+    'receives_alerts': 'Receives alerts',
+    'can_book': 'Can book appointments',
+    'can_rate': 'Can submit ratings',
+    'can_raise_emergency': 'Can raise emergency',
+    'is_decision_maker': 'Decision maker',
+  };
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.bgCard,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+    ),
+    builder: (sheetContext) => StatefulBuilder(
+      builder: (sheetContext, setSheet) => Padding(
+        padding: EdgeInsets.only(
+          left: 20.w,
+          right: 20.w,
+          top: 18.h,
+          bottom: 20.h + MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              member.name,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.navy,
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              'Permissions',
+              style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
+            ),
+            SizedBox(height: 8.h),
+            for (final entry in labels.entries)
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                activeThumbColor: AppColors.blue,
+                title: Text(
+                  entry.value,
+                  style: TextStyle(fontSize: 14.sp, color: AppColors.text),
+                ),
+                value: perms[entry.key] ?? false,
+                onChanged: (v) => setSheet(() => perms[entry.key] = v),
+              ),
+            SizedBox(height: 12.h),
+            SizedBox(
+              width: double.infinity,
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  vm.updatePermissions(member.id, Map.of(perms));
+                  Navigator.pop(sheetContext);
+                },
+                child: const Text('Save permissions'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
