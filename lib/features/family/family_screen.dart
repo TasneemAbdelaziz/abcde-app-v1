@@ -25,7 +25,7 @@ class FamilyScreen extends StatelessWidget {
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 24.h),
               children: [
-                _buildHeader(),
+                _buildHeader(context),
                 SizedBox(height: 20.h),
                 for (final member in vm.members) ...[
                   _FamilyMemberCard(member: member),
@@ -40,12 +40,12 @@ class FamilyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Manage who follows your care',
+          context.watch<LocaleController>().t('family_manage'),
           style: TextStyle(
             fontSize: 15.sp,
             fontWeight: FontWeight.w600,
@@ -75,7 +75,7 @@ class FamilyScreen extends StatelessWidget {
                 Icon(Icons.qr_code_2, color: AppColors.blue, size: 20.sp),
                 SizedBox(width: 8.w),
                 Text(
-                  'Scan QR Code',
+                  context.watch<LocaleController>().t('fam_scan_qr'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -103,7 +103,7 @@ class FamilyScreen extends StatelessWidget {
                 Icon(Icons.edit, color: AppColors.blue, size: 20.sp),
                 SizedBox(width: 8.w),
                 Text(
-                  'Add Manually',
+                  context.watch<LocaleController>().t('add_manually'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
@@ -119,11 +119,12 @@ class FamilyScreen extends StatelessWidget {
   }
 
   Widget _buildPrivacyControls(BuildContext context, FamilyVm vm) {
+    final loc = context.watch<LocaleController>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'PRIVACY CONTROLS',
+          loc.t('privacy_controls'),
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w700,
@@ -144,7 +145,7 @@ class FamilyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'What family can see',
+                loc.t('what_family_sees'),
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
@@ -153,31 +154,31 @@ class FamilyScreen extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               _buildToggleRow(
-                'Vital signs',
+                loc.t('fam_see_vitals'),
                 vm.showVitals,
                 (v) => vm.toggleVitals(v),
               ),
               SizedBox(height: 14.h),
               _buildToggleRow(
-                'Medication schedule',
+                loc.t('fam_see_medications'),
                 vm.showMedications,
                 (v) => vm.toggleMedications(v),
               ),
               SizedBox(height: 14.h),
               _buildToggleRow(
-                'Lab & test results',
+                loc.t('fam_see_labs'),
                 vm.showLabResults,
                 (v) => vm.toggleLabResults(v),
               ),
               SizedBox(height: 14.h),
               _buildToggleRow(
-                'Care journey & stages',
+                loc.t('fam_see_journey'),
                 vm.showCareJourney,
                 (v) => vm.toggleCareJourney(v),
               ),
               SizedBox(height: 16.h),
               Text(
-                'Privacy controls put you in charge of your own information.',
+                loc.t('fam_privacy_note'),
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontStyle: FontStyle.italic,
@@ -272,7 +273,7 @@ class _FamilyMemberCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10.r),
                           ),
                           child: Text(
-                            '● Active',
+                            '● ${context.watch<LocaleController>().t('active')}',
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: FontWeight.w600,

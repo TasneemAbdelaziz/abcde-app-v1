@@ -50,11 +50,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildHeader() {
+    final loc = context.watch<LocaleController>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'RECORDS',
+          loc.t('records'),
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w700,
@@ -73,7 +74,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ),
         SizedBox(height: 8.h),
         Text(
-          'Recent reports, lab results, and medical documents.',
+          loc.t('reports_subtitle'),
           style: TextStyle(
             fontSize: 13.sp,
             color: AppColors.textMuted,
@@ -94,8 +95,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
       padding: EdgeInsets.all(4.w),
       child: Row(
         children: [
-          _buildSegmentButton(label: 'Health', index: 0),
-          _buildSegmentButton(label: 'Financial', index: 1),
+          _buildSegmentButton(
+              label: context.watch<LocaleController>().t('tab_health'),
+              index: 0),
+          _buildSegmentButton(
+              label: context.watch<LocaleController>().t('tab_financial'),
+              index: 1),
         ],
       ),
     );
@@ -128,6 +133,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildFinancialSummary() {
     final vm = context.watch<ReportsVm>();
+    final loc = context.watch<LocaleController>();
     if (vm.financialLoading) {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
@@ -152,7 +158,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           boxShadow: AppTheme.shadow,
         ),
         child: Text(
-          'No billing details available for this visit.',
+          loc.t('rep_no_billing'),
           style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
         ),
       );
@@ -170,7 +176,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Current Visit — Bill Summary',
+            loc.t('rep_bill_summary'),
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w700,
@@ -189,16 +195,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
           _buildDivider(),
           SizedBox(height: 16.h),
           _buildBillingRow(
-            'Insurance coverage',
+            loc.t('rep_insurance'),
             '- ${_formatCurrency(file.totals.coveredByInsurance)}',
             valueColor: AppColors.green,
           ),
           _buildDivider(),
-          _buildBillingRow('Amount due', _formatCurrency(file.totals.paid)),
+          _buildBillingRow(
+              loc.t('rep_amount_due'), _formatCurrency(file.totals.paid)),
           if (file.totals.outstanding > 0) ...[
             _buildDivider(),
             _buildBillingRow(
-              'Amount due',
+              loc.t('rep_amount_due'),
               _formatCurrency(file.totals.outstanding),
               valueColor: AppColors.blueDeep,
               labelStyle: TextStyle(
@@ -225,7 +232,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 padding: EdgeInsets.zero,
               ),
               child: Text(
-                'Pay Now',
+                loc.t('pay_now'),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
@@ -285,22 +292,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   void _showPaymentSuccessDialog(BuildContext context) {
+    final loc = context.read<LocaleController>();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Payment Successful',
+          loc.t('rep_pay_success_title'),
           style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Your bill has been paid successfully.',
+          loc.t('rep_pay_success_body'),
           style: TextStyle(fontSize: 14.sp, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'OK',
+              loc.t('ok'),
               style: TextStyle(fontSize: 14.sp, color: AppColors.blue),
             ),
           ),
@@ -317,7 +325,8 @@ class _ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = _reportTypeLabel(report.type);
+    final typeLabel =
+        context.watch<LocaleController>().t(_reportTypeKey(report.type));
     final iconData = _reportTypeIcon(report.type);
     final iconColor = _reportTypeColor(report.type);
 
@@ -387,14 +396,14 @@ class _ReportCard extends StatelessWidget {
     }
   }
 
-  String _reportTypeLabel(String type) {
+  String _reportTypeKey(String type) {
     switch (type) {
       case 'lab':
-        return 'Laboratory';
+        return 'rep_type_lab';
       case 'imaging':
-        return 'Imaging';
+        return 'rep_type_imaging';
       case 'summary':
-        return 'Summary';
+        return 'rep_type_summary';
       default:
         return type;
     }

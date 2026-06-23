@@ -455,8 +455,27 @@ class _VitalCard extends StatelessWidget {
     }
   }
 
+  /// Translation key for each known vital label (falls back to the raw label).
+  String _labelKey() {
+    switch (vital.label) {
+      case 'Heart Rate':
+        return 'vital_heart_rate';
+      case 'SpO₂':
+        return 'vital_spo2';
+      case 'Blood Pressure':
+        return 'vital_blood_pressure';
+      case 'Temperature':
+        return 'vital_temperature';
+      case 'Respiration':
+        return 'vital_respiration';
+      default:
+        return vital.label;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     final (icon, color) = _style;
     return Container(
       width: 120.w,
@@ -494,7 +513,7 @@ class _VitalCard extends StatelessWidget {
             ],
           ),
           Text(
-            vital.label,
+            loc.t(_labelKey()),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 11.sp, color: AppColors.textMuted),

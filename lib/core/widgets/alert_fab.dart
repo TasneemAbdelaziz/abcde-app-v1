@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
+import '../i18n/locale_controller.dart';
 import '../theme/app_theme.dart';
 
 /// The global "Call your doctor" alert button (the red rounded-square FAB
@@ -49,6 +51,7 @@ class _AlertFabState extends State<AlertFab>
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     // Constant drop shadow (present at every keyframe).
     const baseShadow = BoxShadow(
       color: Color(0x80D32020), // rgba(211,32,32,.5)
@@ -62,7 +65,7 @@ class _AlertFabState extends State<AlertFab>
       type: MaterialType.transparency,
       child: Semantics(
       button: true,
-      label: 'Call your doctor',
+      label: loc.t('alert_call_doctor'),
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedBuilder(
@@ -114,7 +117,7 @@ class _AlertFabState extends State<AlertFab>
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  'Call your doctor',
+                  loc.t('alert_call_doctor'),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   style: TextStyle(
@@ -212,6 +215,7 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Positioned.fill(
       // Material gives the text widgets a proper default style. Without it,
       // Flutter paints text with its yellow-underlined "fallback" warning style.
@@ -275,7 +279,7 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
                   ),
                   SizedBox(height: 16.h),
                   Text(
-                    'Alert Sent!',
+                    loc.t('alert_sent'),
                     style: TextStyle(
                       color: AppColors.navy,
                       fontSize: 20.sp,
@@ -284,7 +288,7 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'A nurse will arrive shortly',
+                    loc.t('alert_nurse'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.textMuted,
@@ -302,7 +306,7 @@ class _EmergencyOverlayState extends State<EmergencyOverlay>
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                       ),
-                      child: const Text('Dismiss'),
+                      child: Text(loc.t('alert_dismiss')),
                     ),
                   ),
                 ],
