@@ -35,17 +35,28 @@ class AuthRepository {
       if (data is Map<String, dynamic>) {
         currentSession =
             AuthSession(token: token, user: AuthUser.fromJson(data));
-        return true;
       }
+      // Request succeeded → the token is valid; stay logged in.
+      return true;
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        // The server actually rejected the token (expired / invalid) — only
+        // THEN do we drop it and require a fresh login.
+        _api.token = null;
+        currentSession = null;
+        await AppPrefs.clearAuthToken();
+        return false;
+      }
+      // Any other failure (network down, timeout, TLS, 5xx) is transient. Keep
+      // the saved token and stay logged in — the app loads once the network
+      // recovers, and a genuine 401 later still bounces to login.
+      return true;
     } catch (_) {
-      // Token expired / invalid / network down — fall through and clear it.
+      // Non-API error (socket/timeout) — also transient; keep the token.
+      return true;
     } finally {
       _api.suppressAuthRedirect = false;
     }
-    _api.token = null;
-    currentSession = null;
-    await AppPrefs.clearAuthToken();
-    return false;
   }
 
   /// Logs in with an identifier (national ID or email) and password.
