@@ -10,6 +10,7 @@ import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
 import '../diagnosis/diagnosis_video_screen.dart';
+import '../home/home_vm.dart';
 import 'treatment_vm.dart';
 
 /// The patient's treatment plan: recovery progress, explainer videos, today's
@@ -23,6 +24,16 @@ class TreatmentScreen extends StatelessWidget {
     final loc = context.watch<LocaleController>();
     final p = vm.plan;
 
+    // The attending doctor comes from the real backend visit (same as the rest
+    // of the app), falling back to the plan's value if the visit isn't loaded.
+    final visit = context.watch<HomeVm>().visit;
+    final doctorName = (visit?.doctorName ?? '').isNotEmpty
+        ? visit!.doctorName
+        : (p?.doctorName ?? '');
+    final doctorMeta = (visit?.departmentName ?? '').isNotEmpty
+        ? visit!.departmentName
+        : (p?.doctorMeta ?? '');
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: BrandBar(title: loc.t('title_treatment')),
@@ -31,7 +42,7 @@ class TreatmentScreen extends StatelessWidget {
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 28.h),
               children: [
-                _DoctorHeader(plan: p),
+                _DoctorHeader(name: doctorName, meta: doctorMeta),
                 SizedBox(height: 16.h),
 
                 _RecoveryCard(plan: p),
@@ -85,8 +96,23 @@ class TreatmentScreen extends StatelessWidget {
 // --- Header -----------------------------------------------------------------
 
 class _DoctorHeader extends StatelessWidget {
-  final TreatmentPlan plan;
-  const _DoctorHeader({required this.plan});
+  final String name;
+  final String meta;
+  const _DoctorHeader({required this.name, required this.meta});
+
+  /// Initials from the doctor's name (e.g. 'Dr. Karim Adel' → 'KA').
+  String get _initials {
+    final words = name
+        .replaceAll('Dr.', '')
+        .replaceAll('د.', '')
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    if (words.isEmpty) return '—';
+    if (words.length == 1) return words.first.characters.first.toUpperCase();
+    return (words[0].characters.first + words[1].characters.first).toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +130,7 @@ class _DoctorHeader extends StatelessWidget {
             decoration:
                 const BoxDecoration(color: AppColors.blue, shape: BoxShape.circle),
             child: Text(
-              plan.doctorInitials,
+              _initials,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 13.sp,
@@ -117,7 +143,7 @@ class _DoctorHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                plan.doctorName,
+                name,
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 14.sp,
@@ -125,7 +151,7 @@ class _DoctorHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                plan.doctorMeta,
+                meta,
                 style: TextStyle(color: AppColors.textMuted, fontSize: 12.sp),
               ),
             ],
