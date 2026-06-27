@@ -58,6 +58,28 @@ class PatientCareApiRepository {
   /// Diagnosis screen (from the visit-detail object).
   Future<Diagnosis> getDiagnosis() async => _diagnosisFromVisit(await _visitDetail());
 
+  /// Translates free text on demand via `POST /documentation/translate`.
+  /// Returns the translated text, or the original text on any problem (so the
+  /// UI always shows something readable). [target] is a locale code: ar|ru|zh|en.
+  Future<String> translateText(String text, String target) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return text;
+    try {
+      final res = await _api.postJson('/documentation/translate', {
+        'text': trimmed,
+        'target': target,
+      });
+      final data = res['data'];
+      if (data is Map<String, dynamic>) {
+        final translated = (data['translated_text'] ?? '').toString();
+        if (translated.isNotEmpty) return translated;
+      }
+      return text;
+    } on ApiException {
+      return text;
+    }
+  }
+
   /// Care Journey timeline (from the visit-detail object).
   Future<VisitJourney> getJourney() async => _journeyFromVisit(await _visitDetail());
 

@@ -7,6 +7,7 @@ import '../../core/models/diagnosis.dart';
 import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/load_message.dart';
 import 'diagnosis_video_screen.dart';
 import 'diagnosis_vm.dart';
 
@@ -18,30 +19,44 @@ class DiagnosisScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<DiagnosisVm>();
+    final loc = context.watch<LocaleController>();
     final dx = vm.diagnosis;
+
+    // Translate the clinical free-text into the app language (idempotent;
+    // restores the original for English). Run after the frame so we never call
+    // notifyListeners during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      vm.ensureTranslated(loc.code);
+    });
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: BrandBar(title: context.watch<LocaleController>().t('title_diagnosis')),
-      body: (vm.loading || dx == null)
+      appBar: BrandBar(title: loc.t('title_diagnosis')),
+      body: vm.loading
           ? const Center(child: CircularProgressIndicator())
+          : (vm.error != null || dx == null)
+          ? LoadMessage(
+              icon: Icons.cloud_off,
+              text: vm.error ?? 'Could not load the diagnosis.',
+              onRetry: () => context.read<DiagnosisVm>().load(),
+            )
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 28.h),
               children: [
                 _DiagnosisHero(diagnosis: dx),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('YOUR CASE EXPLAINED'),
+                _SectionLabel(loc.t('dx_case')),
                 SizedBox(height: 10.h),
                 _VideoCard(video: dx.caseVideo),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('WHAT THIS MEANS'),
+                _SectionLabel(loc.t('dx_means')),
                 SizedBox(height: 10.h),
                 _WhatThisMeansCard(text: dx.explanation),
                 SizedBox(height: 18.h),
 
-                const _SectionLabel('HOW TO PREVENT IT FROM WORSENING'),
+                _SectionLabel(loc.t('dx_prevent')),
                 SizedBox(height: 10.h),
                 for (final v in dx.preventionVideos) ...[
                   _VideoCard(video: v),
@@ -60,6 +75,7 @@ class _DiagnosisHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 16.h),
@@ -76,7 +92,7 @@ class _DiagnosisHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Current diagnosis',
+            loc.t('dx_current'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 11.sp,
@@ -97,7 +113,7 @@ class _DiagnosisHero extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             '${diagnosis.department} · ${diagnosis.doctor} · '
-            'Admitted ${diagnosis.admitted}',
+            '${loc.t('admitted')} ${diagnosis.admitted}',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.88),
               fontSize: 12.sp,
@@ -165,6 +181,7 @@ class _VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return GestureDetector(
       onTap: () {
         if (video.available) {
@@ -175,7 +192,7 @@ class _VideoCard extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This video will be available soon.')),
+            SnackBar(content: Text(loc.t('video_unavailable'))),
           );
         }
       },
@@ -210,7 +227,7 @@ class _VideoCard extends StatelessWidget {
                         ),
                         SizedBox(height: 6.h),
                         Text(
-                          'Coming soon',
+                          loc.t('coming_soon'),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 11.sp,
@@ -229,7 +246,7 @@ class _VideoCard extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Watch: ${video.title}',
+                    '${loc.t('watch')}: ${video.title}',
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

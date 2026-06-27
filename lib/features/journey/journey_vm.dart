@@ -13,6 +13,7 @@ class JourneyVm extends ChangeNotifier {
   JourneyVm(this._api);
 
   bool loading = false;
+  String? error;
   List<VisitStage> stages = [];
 
   /// Loads the visit timeline from `GET /visits/%23{serial}` using the
@@ -20,6 +21,7 @@ class JourneyVm extends ChangeNotifier {
   /// contains `data.timeline` which we map to `VisitStage` objects.
   Future<void> load() async {
     loading = true;
+    error = null;
     notifyListeners();
 
     try {
@@ -45,6 +47,7 @@ class JourneyVm extends ChangeNotifier {
       ];
     } catch (e) {
       stages = [];
+      error = 'Could not load the treatment journey.';
     } finally {
       loading = false;
       notifyListeners();

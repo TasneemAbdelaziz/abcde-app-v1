@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../core/i18n/locale_controller.dart';
 import '../../core/models/vital.dart';
 import '../../core/notifications/notification_center.dart';
-import '../../core/repositories/patient_api_repository.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -117,12 +116,9 @@ class _GreetingCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(
+        color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(20.r),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.blue, AppColors.blueDeep],
-        ),
+        border: Border.all(color: AppColors.border),
         boxShadow: AppTheme.shadow,
       ),
       child: Column(
@@ -133,8 +129,8 @@ class _GreetingCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 26.r,
-                backgroundColor: Colors.white.withValues(alpha: 0.18),
-                child: Icon(Icons.person, color: Colors.white, size: 30.sp),
+                backgroundColor: AppColors.bluePale,
+                child: Icon(Icons.person, color: AppColors.blue, size: 30.sp),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -144,7 +140,7 @@ class _GreetingCard extends StatelessWidget {
                     Text(
                       '${_greeting(loc)} 👋',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: AppColors.textMuted,
                         fontSize: 12.sp,
                       ),
                     ),
@@ -152,7 +148,7 @@ class _GreetingCard extends StatelessWidget {
                     Text(
                       name,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.text,
                         fontSize: 20.sp,
                         fontWeight: FontWeight.w800,
                       ),
@@ -161,7 +157,7 @@ class _GreetingCard extends StatelessWidget {
                     Text(
                       bits.join('  ·  '),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: AppColors.textMuted,
                         fontSize: 12.sp,
                       ),
                     ),
@@ -214,7 +210,7 @@ class _NotificationBell extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Icon(Icons.notifications_none, color: Colors.white, size: 26.sp),
+            Icon(Icons.notifications_none, color: AppColors.blueDeep, size: 26.sp),
             if (unread > 0)
               Positioned(
                 right: 0,
@@ -253,14 +249,14 @@ class _ConditionPill extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: AppColors.amber.withValues(alpha: 0.22),
+        color: AppColors.amber.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.amber.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.amber.withValues(alpha: 0.6)),
       ),
       child: Text(
         text,
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.text,
           fontSize: 12.sp,
           fontWeight: FontWeight.w600,
         ),
@@ -286,7 +282,7 @@ class _CareJourneyCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: AppColors.bluePale,
         borderRadius: BorderRadius.circular(14.r),
       ),
       child: Row(
@@ -298,7 +294,7 @@ class _CareJourneyCard extends StatelessWidget {
                 Text(
                   loc.t('care_journey'),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: AppColors.textMuted,
                     fontSize: 11.sp,
                   ),
                 ),
@@ -306,7 +302,7 @@ class _CareJourneyCard extends StatelessWidget {
                 Text(
                   _journeyText(vm, loc),
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.text,
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w700,
                   ),
@@ -318,8 +314,8 @@ class _CareJourneyCard extends StatelessWidget {
           OutlinedButton(
             onPressed: () => Navigator.pushNamed(context, Routes.journey),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
+              foregroundColor: AppColors.blue,
+              side: BorderSide(color: AppColors.blue.withValues(alpha: 0.6)),
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -342,7 +338,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: AppColors.bluePale,
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Column(
@@ -351,7 +347,7 @@ class _InfoChip extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: AppColors.textMuted,
               fontSize: 11.sp,
             ),
           ),
@@ -359,7 +355,7 @@ class _InfoChip extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.text,
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
             ),
@@ -550,27 +546,7 @@ class _MyHealthGrid extends StatelessWidget {
         icon: Icons.star_outline,
         color: AppColors.amber,
         label: loc.t('tile_rating'),
-        onTap: () async {
-          final messenger = ScaffoldMessenger.of(context);
-          final repo = context.read<PatientApiRepository>();
-          final r = await OverallRateSheet.show(context);
-          if (r == null) return;
-          try {
-            await repo.submitOverallRating(stars: r.stars, comment: r.comment);
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Thanks! You rated your care ${r.stars} '
-                  '${r.stars == 1 ? 'star' : 'stars'}.',
-                ),
-              ),
-            );
-          } catch (e) {
-            messenger.showSnackBar(
-              SnackBar(content: Text('Could not save your rating. $e')),
-            );
-          }
-        },
+        onTap: () => presentOverallRatingSheet(context),
       ),
       _FeatureTile(
         icon: Icons.lightbulb_outline,
@@ -685,7 +661,10 @@ class _ErrorState extends StatelessWidget {
         ),
         SizedBox(height: 16.h),
         Center(
-          child: OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          child: OutlinedButton(
+            onPressed: onRetry,
+            child: Text(context.watch<LocaleController>().t('retry')),
+          ),
         ),
       ],
     );

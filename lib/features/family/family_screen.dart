@@ -368,13 +368,14 @@ Future<void> _showPermissionsSheet(
     'can_raise_emergency': member.canRaiseEmergency,
     'is_decision_maker': member.isDecisionMaker,
   };
-  const labels = <String, String>{
-    'can_see_status': 'Can see care status',
-    'receives_alerts': 'Receives alerts',
-    'can_book': 'Can book appointments',
-    'can_rate': 'Can submit ratings',
-    'can_raise_emergency': 'Can raise emergency',
-    'is_decision_maker': 'Decision maker',
+  final loc = context.read<LocaleController>();
+  const labelKeys = <String, String>{
+    'can_see_status': 'perm_can_see_status',
+    'receives_alerts': 'perm_receives_alerts',
+    'can_book': 'perm_can_book',
+    'can_rate': 'perm_can_rate',
+    'can_raise_emergency': 'perm_can_raise_emergency',
+    'is_decision_maker': 'perm_is_decision_maker',
   };
 
   await showModalBottomSheet<void>(
@@ -406,17 +407,17 @@ Future<void> _showPermissionsSheet(
             ),
             SizedBox(height: 2.h),
             Text(
-              'Permissions',
+              loc.t('fam_permissions'),
               style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
             ),
             SizedBox(height: 8.h),
-            for (final entry in labels.entries)
+            for (final entry in labelKeys.entries)
               SwitchListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 activeThumbColor: AppColors.blue,
                 title: Text(
-                  entry.value,
+                  loc.t(entry.value),
                   style: TextStyle(fontSize: 14.sp, color: AppColors.text),
                 ),
                 value: perms[entry.key] ?? false,
@@ -431,7 +432,7 @@ Future<void> _showPermissionsSheet(
                   vm.updatePermissions(member.id, Map.of(perms));
                   Navigator.pop(sheetContext);
                 },
-                child: const Text('Save permissions'),
+                child: Text(loc.t('save_permissions')),
               ),
             ),
           ],

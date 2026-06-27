@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/i18n/locale_controller.dart';
 import '../../core/models/family_member.dart';
 import '../../core/repositories/patient_api_repository.dart';
 import '../home/home_vm.dart';
@@ -185,6 +187,7 @@ class FamilyVm extends ChangeNotifier {
   }
 
   Future<void> addManually(BuildContext context) async {
+    final loc = context.read<LocaleController>();
     // Manual add form: name, relationship, phone, and the six permission flags.
     String name = '';
     String relationship = '';
@@ -202,32 +205,33 @@ class FamilyVm extends ChangeNotifier {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheet) => AlertDialog(
-          title: const Text('Add Family Member'),
+          title: Text(loc.t('fam_add_title')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: InputDecoration(labelText: loc.t('fam_name')),
                   onChanged: (value) => name = value,
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  decoration: const InputDecoration(labelText: 'Relationship'),
+                  decoration:
+                      InputDecoration(labelText: loc.t('fam_relationship')),
                   onChanged: (value) => relationship = value,
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  decoration: const InputDecoration(labelText: 'Phone'),
+                  decoration: InputDecoration(labelText: loc.t('fam_phone')),
                   keyboardType: TextInputType.phone,
                   onChanged: (value) => phone = value,
                 ),
                 const SizedBox(height: 8),
-                for (final entry in _permissionLabels.entries)
+                for (final entry in _permissionKeys.entries)
                   SwitchListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
-                    title: Text(entry.value),
+                    title: Text(loc.t(entry.value)),
                     value: perms[entry.key] ?? false,
                     onChanged: (v) => setSheet(() => perms[entry.key] = v),
                   ),
@@ -237,7 +241,7 @@ class FamilyVm extends ChangeNotifier {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(loc.t('cancel')),
             ),
             TextButton(
               onPressed: () {
@@ -246,7 +250,7 @@ class FamilyVm extends ChangeNotifier {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Add'),
+              child: Text(loc.t('add')),
             ),
           ],
         ),
@@ -254,14 +258,14 @@ class FamilyVm extends ChangeNotifier {
     );
   }
 
-  /// Human-readable labels for the six backend permission flags.
-  static const Map<String, String> _permissionLabels = {
-    'can_see_status': 'Can see care status',
-    'receives_alerts': 'Receives alerts',
-    'can_book': 'Can book appointments',
-    'can_rate': 'Can submit ratings',
-    'can_raise_emergency': 'Can raise emergency',
-    'is_decision_maker': 'Decision maker',
+  /// Translation keys for the six backend permission flags.
+  static const Map<String, String> _permissionKeys = {
+    'can_see_status': 'perm_can_see_status',
+    'receives_alerts': 'perm_receives_alerts',
+    'can_book': 'perm_can_book',
+    'can_rate': 'perm_can_rate',
+    'can_raise_emergency': 'perm_can_raise_emergency',
+    'is_decision_maker': 'perm_is_decision_maker',
   };
 
   /// The patient serial (from HomeVm.profile or /auth/me).

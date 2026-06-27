@@ -9,6 +9,7 @@ import '../../core/models/patient_profile.dart';
 import '../home/home_vm.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/load_message.dart';
 import '../../core/widgets/rate_sheet.dart';
 import '../../core/widgets/star_row.dart';
 import 'journey_vm.dart';
@@ -43,6 +44,12 @@ class _JourneyScreenState extends State<JourneyScreen> {
       appBar: BrandBar(title: context.watch<LocaleController>().t('title_journey')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
+          : vm.error != null
+          ? LoadMessage(
+              icon: Icons.cloud_off,
+              text: vm.error!,
+              onRetry: () => context.read<JourneyVm>().load(),
+            )
           : ListView(
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
               children: [

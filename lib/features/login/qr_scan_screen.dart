@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/i18n/locale_controller.dart';
 
 /// Full-screen camera QR scanner. Pops with the scanned string (the patient's
 /// `qr_token`, e.g. "QR-1XL7X8ZV3T"), or null if the user backs out.
@@ -37,7 +40,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Scan QR code'),
+        title: Text(context.watch<LocaleController>().t('scan_qr')),
         actions: [
           IconButton(
             tooltip: 'Flash',

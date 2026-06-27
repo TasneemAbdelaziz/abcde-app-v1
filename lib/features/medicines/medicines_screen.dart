@@ -7,6 +7,7 @@ import '../../core/models/medicine.dart';
 import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/load_message.dart';
 import 'medicines_vm.dart';
 
 /// All prescribed medicines, each with a product photo, dose, and schedule.
@@ -22,6 +23,18 @@ class MedicinesScreen extends StatelessWidget {
       appBar: BrandBar(title: context.watch<LocaleController>().t('title_medicines')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
+          : (vm.error != null && vm.medicines.isEmpty)
+          ? LoadMessage(
+              icon: Icons.cloud_off,
+              text: vm.error!,
+              onRetry: () => context.read<MedicinesVm>().load(),
+            )
+          : vm.medicines.isEmpty
+          ? LoadMessage(
+              icon: Icons.medication_outlined,
+              text: context.watch<LocaleController>().t('meds_none'),
+              onRetry: () => context.read<MedicinesVm>().load(),
+            )
           : ListView.separated(
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 24.h),
               itemCount: vm.medicines.length,

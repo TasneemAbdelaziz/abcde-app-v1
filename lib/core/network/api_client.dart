@@ -108,13 +108,36 @@ class ApiClient {
 
   Uri _uri(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
 
+  /// Runs [request] with a timeout, retrying ONCE on a transient connection
+  /// drop.
+  ///
+  /// The backend keeps connections alive but sometimes closes an idle pooled
+  /// one; reusing it then fails with "Connection closed before full header was
+  /// received". That error is safe to retry — the second attempt opens a fresh
+  /// connection. We only retry idempotent reads is NOT assumed here: a dropped
+  /// connection means the server never received/answered the request, so a
+  /// single retry is safe for any verb.
+  Future<http.Response> _attempt(
+    Future<http.Response> Function() request,
+  ) async {
+    try {
+      return await request().timeout(const Duration(seconds: 20));
+    } on http.ClientException catch (e) {
+      if (!_isConnectionClosed(e)) rethrow;
+      return await request().timeout(const Duration(seconds: 20));
+    }
+  }
+
+  bool _isConnectionClosed(http.ClientException e) =>
+      e.message.contains('Connection closed before full header was received');
+
   /// Runs [request], validates the status, and decodes the JSON body.
   Future<Map<String, dynamic>> _send(
     Future<http.Response> Function() request,
   ) async {
     http.Response res;
     try {
-      res = await request().timeout(const Duration(seconds: 20));
+      res = await _attempt(request);
     } catch (e) {
       // SocketException, TimeoutException, HandshakeException, etc. — no usable
       // response. Surface the real error during debugging so we can tell a DNS

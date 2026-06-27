@@ -38,7 +38,6 @@ import 'features/notifications/notifications_screen.dart';
 import 'features/notifications/notifications_vm.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/profile/profile_screen.dart';
-import 'features/rating/rating_screen.dart';
 import 'features/reports/reports_vm.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/treatment/treatment_screen.dart';
@@ -197,7 +196,6 @@ class AlameinApp extends StatelessWidget {
               Routes.development: (_) => const DevelopmentScreen(),
               Routes.diagnosis: (_) => const DiagnosisScreen(),
               Routes.medicines: (_) => const MedicinesScreen(),
-              Routes.rating: (_) => const RatingScreen(),
             },
             );
           },

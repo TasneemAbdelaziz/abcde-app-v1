@@ -98,7 +98,10 @@ class _VisitsMessage extends StatelessWidget {
               style: TextStyle(fontSize: 14.sp, color: AppColors.textMuted),
             ),
             SizedBox(height: 16.h),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(
+              onPressed: onRetry,
+              child: Text(context.watch<LocaleController>().t('retry')),
+            ),
           ],
         ),
       ),

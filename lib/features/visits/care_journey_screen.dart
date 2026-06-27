@@ -28,7 +28,9 @@ class CareJourneyScreen extends StatelessWidget {
     if (journey == null) {
       return Scaffold(
         appBar: BrandBar(title: title),
-        body: const Center(child: Text('Visit not found.')),
+        body: Center(
+          child: Text(context.watch<LocaleController>().t('visit_not_found')),
+        ),
       );
     }
 
