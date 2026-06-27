@@ -6,6 +6,10 @@ class VisitStage {
   final String status; // e.g. 'done', 'current', 'upcoming'
   final int rating; // 0..5 stars, 0 = not rated yet
 
+  /// The backend stage code (e.g. 'triage', 'cath'), used to look up a
+  /// translated stage name. Empty when unknown.
+  final String code;
+
   /// Optional timestamp shown next to the stage, e.g. '08:12'. Empty if none.
   final String time;
 
@@ -17,6 +21,7 @@ class VisitStage {
     required this.title,
     required this.status,
     this.rating = 0,
+    this.code = '',
     this.time = '',
     this.detail = '',
   });
@@ -26,6 +31,7 @@ class VisitStage {
     String? title,
     String? status,
     int? rating,
+    String? code,
     String? time,
     String? detail,
   }) {
@@ -34,6 +40,7 @@ class VisitStage {
       title: title ?? this.title,
       status: status ?? this.status,
       rating: rating ?? this.rating,
+      code: code ?? this.code,
       time: time ?? this.time,
       detail: detail ?? this.detail,
     );

@@ -224,6 +224,16 @@ class LocaleController extends ChangeNotifier {
       'perm_can_raise_emergency': 'Can raise emergency',
       'perm_is_decision_maker': 'Decision maker',
       'visit_not_found': 'Visit not found.',
+      // Journey: static labels + stage names
+      'jr_visit': 'Visit', 'jr_cardiac_pathway': 'Cardiac pathway',
+      'tap_edit_rating': 'Tap to edit rating',
+      'jr_footer':
+          "Each completed stage opens a service rating. Your ratings feed the hospital's quality reports.",
+      'stage_registration': 'Registration', 'stage_arrival': 'Arrival',
+      'stage_triage': 'Triage', 'stage_diagnosis': 'Diagnosis',
+      'stage_cathprep': 'Cath Prep', 'stage_cath': 'Catheterization',
+      'stage_catheterization': 'Catheterization',
+      'stage_recovery': 'Recovery & Monitoring', 'stage_discharge': 'Discharge',
     },
     'ar': {
       'sign_in': 'تسجيل الدخول',
@@ -363,6 +373,15 @@ class LocaleController extends ChangeNotifier {
       'perm_can_raise_emergency': 'يطلب الطوارئ',
       'perm_is_decision_maker': 'متّخذ القرار',
       'visit_not_found': 'الزيارة غير موجودة.',
+      'jr_visit': 'زيارة', 'jr_cardiac_pathway': 'مسار القلب',
+      'tap_edit_rating': 'اضغط لتعديل التقييم',
+      'jr_footer':
+          'كل مرحلة مكتملة تفتح تقييمًا للخدمة. تقييماتك تغذّي تقارير جودة المستشفى.',
+      'stage_registration': 'التسجيل', 'stage_arrival': 'الوصول',
+      'stage_triage': 'الفرز', 'stage_diagnosis': 'التشخيص',
+      'stage_cathprep': 'التحضير للقسطرة', 'stage_cath': 'القسطرة',
+      'stage_catheterization': 'القسطرة',
+      'stage_recovery': 'التعافي والمتابعة', 'stage_discharge': 'الخروج',
     },
     'ru': {
       'sign_in': 'Вход',
@@ -513,6 +532,16 @@ class LocaleController extends ChangeNotifier {
       'perm_can_raise_emergency': 'Может вызвать неотложку',
       'perm_is_decision_maker': 'Принимает решения',
       'visit_not_found': 'Визит не найден.',
+      'jr_visit': 'Визит', 'jr_cardiac_pathway': 'Кардиологический путь',
+      'tap_edit_rating': 'Нажмите, чтобы изменить оценку',
+      'jr_footer':
+          'Каждый завершённый этап открывает оценку услуги. Ваши оценки формируют отчёты о качестве больницы.',
+      'stage_registration': 'Регистрация', 'stage_arrival': 'Прибытие',
+      'stage_triage': 'Сортировка', 'stage_diagnosis': 'Диагноз',
+      'stage_cathprep': 'Подготовка к катетеризации',
+      'stage_cath': 'Катетеризация', 'stage_catheterization': 'Катетеризация',
+      'stage_recovery': 'Восстановление и наблюдение',
+      'stage_discharge': 'Выписка',
     },
     'zh': {
       'sign_in': '登录',
@@ -641,6 +670,14 @@ class LocaleController extends ChangeNotifier {
       'perm_can_raise_emergency': '可发起紧急求助',
       'perm_is_decision_maker': '决策者',
       'visit_not_found': '未找到就诊。',
+      'jr_visit': '就诊', 'jr_cardiac_pathway': '心脏诊疗路径',
+      'tap_edit_rating': '点击修改评分',
+      'jr_footer': '每个完成的阶段都会开启服务评分。您的评分将纳入医院质量报告。',
+      'stage_registration': '登记', 'stage_arrival': '到达',
+      'stage_triage': '分诊', 'stage_diagnosis': '诊断',
+      'stage_cathprep': '导管术准备', 'stage_cath': '导管术',
+      'stage_catheterization': '导管术',
+      'stage_recovery': '恢复与监测', 'stage_discharge': '出院',
     },
   };
 }

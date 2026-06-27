@@ -35,13 +35,14 @@ class _JourneyScreenState extends State<JourneyScreen> {
   Widget build(BuildContext context) {
     final vm = context.watch<JourneyVm>();
     final home = context.watch<HomeVm>();
+    final loc = context.watch<LocaleController>();
     final profile = home.profile;
     final visit = home.visit;
     final journeySummary = visit?.stage.title ?? '';
     final arrivalAt = visit?.arrivedAt;
 
     return Scaffold(
-      appBar: BrandBar(title: context.watch<LocaleController>().t('title_journey')),
+      appBar: BrandBar(title: loc.t('title_journey')),
       body: vm.loading
           ? const Center(child: CircularProgressIndicator())
           : vm.error != null
@@ -76,7 +77,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
                   ),
                 SizedBox(height: 8.h),
                 Text(
-                  'Each completed stage opens a service rating. Your ratings feed the hospital\'s quality reports.',
+                  loc.t('jr_footer'),
                   style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11.sp,
@@ -109,6 +110,7 @@ class _JourneyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 16.h),
@@ -126,8 +128,8 @@ class _JourneyHeader extends StatelessWidget {
         children: [
           Text(
             profile != null && profile!.serial.isNotEmpty
-                ? 'Visit #${profile!.serial} · Cardiac pathway'
-                : 'Visit · Care Journey',
+                ? '${loc.t('jr_visit')} #${profile!.serial} · ${loc.t('jr_cardiac_pathway')}'
+                : '${loc.t('jr_visit')} · ${loc.t('title_care_journey')}',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 11.sp,
@@ -154,7 +156,7 @@ class _JourneyHeader extends StatelessWidget {
           if (arrivalAt != null) ...[
             SizedBox(height: 4.h),
             Text(
-              'Admitted ${_formatArrival(arrivalAt!)}',
+              '${loc.t('admitted')} ${_formatArrival(arrivalAt!)}',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
                 fontSize: 11.sp,
@@ -216,8 +218,18 @@ class _StageRow extends StatelessWidget {
     return AppColors.border2;
   }
 
+  /// Translated stage name from its backend code, falling back to the title
+  /// the backend sent when we have no translation for that code.
+  String _stageName(LocaleController loc) {
+    if (stage.code.isEmpty) return stage.title;
+    final key = 'stage_${stage.code}';
+    final translated = loc.t(key);
+    return translated == key ? stage.title : translated;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocaleController>();
     final detailLine = stage.time.isEmpty
         ? stage.detail
         : stage.detail.isEmpty
@@ -256,7 +268,7 @@ class _StageRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$number. ${stage.title}',
+                    '$number. ${_stageName(loc)}',
                     style: TextStyle(
                       color: AppColors.text,
                       fontSize: 14.sp,
@@ -274,7 +286,7 @@ class _StageRow extends StatelessWidget {
                     ),
                   ],
                   SizedBox(height: 8.h),
-                  _control(),
+                  _control(loc),
                 ],
               ),
             ),
@@ -284,7 +296,7 @@ class _StageRow extends StatelessWidget {
     );
   }
 
-  Widget _control() {
+  Widget _control(LocaleController loc) {
     if (_isDone && stage.rating > 0) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +304,7 @@ class _StageRow extends StatelessWidget {
           StarRow(rating: stage.rating, size: 15, onTap: (_) => onRate()),
           SizedBox(height: 6.h),
           Text(
-            'Tap to edit rating',
+            loc.t('tap_edit_rating'),
             style: TextStyle(color: AppColors.textMuted, fontSize: 12.sp),
           ),
         ],
@@ -309,7 +321,7 @@ class _StageRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
-            'Rate this stage',
+            loc.t('rate_stage'),
             style: TextStyle(
               color: AppColors.blue,
               fontSize: 12.sp,
@@ -340,7 +352,7 @@ class _StageRow extends StatelessWidget {
             ),
             SizedBox(width: 6.w),
             Text(
-              'Happening now',
+              loc.t('happening_now'),
               style: TextStyle(
                 color: AppColors.blue,
                 fontSize: 12.sp,
@@ -359,7 +371,7 @@ class _StageRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: Text(
-        'Upcoming',
+        loc.t('dose_upcoming'),
         style: TextStyle(
           color: AppColors.textMuted,
           fontSize: 12.sp,

@@ -8,6 +8,7 @@ import '../../core/i18n/locale_controller.dart';
 import '../../core/models/report.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../home/home_vm.dart';
 import 'reports_vm.dart';
 
 /// Medical reports and lab results.
@@ -51,6 +52,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildHeader() {
     final loc = context.watch<LocaleController>();
+    final visit = context.watch<HomeVm>().visit;
+    // Real attending doctor + department from the backend (the same visit the
+    // rest of the app uses), instead of a hardcoded placeholder.
+    final doctorLine = [
+      if ((visit?.doctorName ?? '').isNotEmpty) visit!.doctorName,
+      if ((visit?.departmentName ?? '').isNotEmpty) visit!.departmentName,
+    ].join(' · ');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -63,15 +71,17 @@ class _ReportsScreenState extends State<ReportsScreen> {
             letterSpacing: 1.2,
           ),
         ),
-        SizedBox(height: 8.h),
-        Text(
-          'Dr. Amira Fouad · Cardiology',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.text,
+        if (doctorLine.isNotEmpty) ...[
+          SizedBox(height: 8.h),
+          Text(
+            doctorLine,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+            ),
           ),
-        ),
+        ],
         SizedBox(height: 8.h),
         Text(
           loc.t('reports_subtitle'),

@@ -85,6 +85,7 @@ class JourneyVm extends ChangeNotifier {
       id: id,
       title: title,
       status: status,
+      code: stageCode.toLowerCase(),
       // Show the locally-remembered rating (the API can't return it).
       rating: AppPrefs.stageRating(id),
       time: time,
