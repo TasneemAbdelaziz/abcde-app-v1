@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../features/rating/rating_screen.dart' show presentOverallRatingSheet;
 import '../../main.dart' show rootNavigatorKey;
+import '../widgets/global_alert_overlay.dart';
 import 'routes.dart';
 
 /// Receives deep links relayed from the paired watch (`abcde://open/<route>`)
@@ -15,6 +16,7 @@ class DeepLinkService {
     Routes.diagnosis,
     Routes.treatment,
     Routes.rating,
+    Routes.alert,
     Routes.development,
     Routes.entertainment,
     Routes.medicines,
@@ -22,14 +24,17 @@ class DeepLinkService {
     Routes.notifications,
   };
 
-  // Guards against the SAME deep link being handled twice for one watch tap.
-  // On a cold start the route arrives via `getInitialRoute`; with the activity's
-  // `singleTop` launch mode Android can ALSO redeliver the same VIEW intent
-  // through `onNewIntent` → `navigate`, which would push the screen a second
-  // time. We ignore an identical route that arrives within this window.
-  static String? _lastRoute;
-  static DateTime? _lastAt;
-  static const _dedupeWindow = Duration(milliseconds: 1200);
+  // The route currently on top of the navigator. One watch tap can reach us
+  // twice (a cold-start `getInitialRoute` plus a redelivered `onNewIntent`, or
+  // a doubled relay), which used to push the same screen twice. We ignore a
+  // deep link for a screen that's already on top. Kept correct by [observer]
+  // (updated whenever the user navigates, e.g. presses back) and optimistically
+  // here on push.
+  static String? _currentRoute;
+
+  /// Add this to `MaterialApp.navigatorObservers` so we always know which screen
+  /// is on top — that's how we tell a duplicate deep link from a real re-open.
+  static final NavigatorObserver observer = _RouteObserver();
 
   static void init() {
     // App already running: navigate immediately.
@@ -51,25 +56,45 @@ class DeepLinkService {
     if (route == null || route.isEmpty) return;
     if (!_allowed.contains(route)) return;
 
-    // Drop a duplicate delivery of the same route within the dedupe window so
-    // the screen opens only once per watch tap.
-    final now = DateTime.now();
-    if (_lastRoute == route &&
-        _lastAt != null &&
-        now.difference(_lastAt!) < _dedupeWindow) {
-      return;
-    }
-    _lastRoute = route;
-    _lastAt = now;
-
     // Rating opens the overall-rating bottom sheet directly (matching the Home
-    // tile) instead of pushing the full Rate-care page.
+    // tile) instead of pushing a page.
     if (route == Routes.rating) {
       final ctx = rootNavigatorKey.currentState?.overlay?.context;
       if (ctx != null) presentOverallRatingSheet(ctx);
       return;
     }
 
+    // Alert opens the emergency confirmation overlay ("Alert Sent! A nurse will
+    // arrive shortly") — same as the floating "Call your doctor" button.
+    if (route == Routes.alert) {
+      GlobalAlert.openEmergency();
+      return;
+    }
+
+    // Already showing this screen — ignore a duplicate delivery.
+    if (route == _currentRoute) return;
+
+    // Optimistic so a second delivery arriving before the push settles is also
+    // ignored; the observer corrects this on pop / other navigation.
+    _currentRoute = route;
     rootNavigatorKey.currentState?.pushNamed(route);
   }
+}
+
+/// Tracks the top *screen* route name for [DeepLinkService]. Only real pages
+/// ([PageRoute]) count — dialogs and bottom sheets (e.g. the rating sheet) are
+/// ignored so they don't reset which screen we think is on top.
+class _RouteObserver extends NavigatorObserver {
+  void _set(Route? route) {
+    if (route is PageRoute) DeepLinkService._currentRoute = route.settings.name;
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) => _set(route);
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) => _set(newRoute);
+
+  @override
+  void didPop(Route route, Route? previousRoute) => _set(previousRoute);
 }

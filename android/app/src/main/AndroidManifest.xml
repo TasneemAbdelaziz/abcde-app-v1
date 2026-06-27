@@ -24,6 +24,14 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- We handle the watch deep link ourselves (DeepLinkService via a
+                 MethodChannel). Disable Flutter's built-in auto deep-linking so
+                 the route isn't ALSO pushed by the framework — that double-pushed
+                 the screen. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

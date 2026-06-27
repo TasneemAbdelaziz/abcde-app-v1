@@ -32,6 +32,10 @@ class GlobalAlert {
   /// Called by the shell whenever the active bottom-nav tab changes.
   static void updateTab(int index) => currentTab.value = index;
 
+  /// Opens the emergency confirmation overlay ("Alert Sent! A nurse will arrive
+  /// shortly"). Used by the FAB and by the watch's Alert deep link.
+  static void openEmergency() => _emergencyOpen.value = true;
+
   /// Routes where the FAB must NOT appear.
   static const Set<String> _hiddenOn = {
     Routes.splash,

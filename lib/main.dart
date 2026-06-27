@@ -171,7 +171,7 @@ class AlameinApp extends StatelessWidget {
             // Splash (logo) → onboarding carousel → login → home.
             initialRoute: Routes.splash,
             // Track the top route (so the alert FAB can hide on login/...)...
-            navigatorObservers: [GlobalAlert.observer],
+            navigatorObservers: [GlobalAlert.observer, DeepLinkService.observer],
             // ...and overlay the floating "Call your doctor" button.
             builder: GlobalAlert.wrap,
             routes: {
