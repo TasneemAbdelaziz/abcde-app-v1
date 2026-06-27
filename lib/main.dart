@@ -125,7 +125,7 @@ class AlameinApp extends StatelessWidget {
 
         // One ViewModel per DATA screen.
         ChangeNotifierProvider(create: (_) => HomeVm(patientApi)),
-        ChangeNotifierProvider(create: (_) => TreatmentVm(repo)),
+        ChangeNotifierProvider(create: (_) => TreatmentVm(careApi)),
         ChangeNotifierProvider(create: (_) => JourneyVm(patientApi)),
         ChangeNotifierProvider(
           create: (ctx) => ReportsVm(

@@ -9,6 +9,7 @@ import '../../core/routing/routes.dart';
 import '../../core/i18n/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
+import '../../core/widgets/load_message.dart';
 import '../diagnosis/diagnosis_video_screen.dart';
 import '../home/home_vm.dart';
 import 'treatment_vm.dart';
@@ -34,61 +35,81 @@ class TreatmentScreen extends StatelessWidget {
         ? visit!.departmentName
         : (p?.doctorMeta ?? '');
 
+    // Only show the quick-stats row when the backend actually has a value.
+    final hasStats = p != null &&
+        (p.nextDose.isNotEmpty ||
+            p.toDischarge.isNotEmpty ||
+            p.adherencePercent > 0);
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: BrandBar(title: loc.t('title_treatment')),
-      body: (vm.loading || p == null)
+      body: vm.loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 28.h),
-              children: [
-                _DoctorHeader(name: doctorName, meta: doctorMeta),
-                SizedBox(height: 16.h),
+          : (vm.error != null || p == null)
+              ? LoadMessage(
+                  icon: Icons.cloud_off,
+                  text: vm.error ?? 'Could not load the treatment plan.',
+                  onRetry: () => context.read<TreatmentVm>().load(),
+                )
+              : ListView(
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 28.h),
+                  children: [
+                    _DoctorHeader(name: doctorName, meta: doctorMeta),
+                    SizedBox(height: 16.h),
 
-                _RecoveryCard(plan: p),
-                SizedBox(height: 14.h),
+                    _RecoveryCard(plan: p),
+                    SizedBox(height: 14.h),
 
-                _StatsRow(plan: p),
-                SizedBox(height: 18.h),
+                    if (hasStats) ...[
+                      _StatsRow(plan: p),
+                      SizedBox(height: 18.h),
+                    ],
 
-                _Label(loc.t('tx_surgery')),
-                SizedBox(height: 10.h),
-                _VideoCard(video: p.surgeryVideo),
-                SizedBox(height: 18.h),
+                    _Label(loc.t('tx_surgery')),
+                    SizedBox(height: 10.h),
+                    _VideoCard(video: p.surgeryVideo),
+                    SizedBox(height: 18.h),
 
-                _Label(loc.t('tx_after')),
-                SizedBox(height: 10.h),
-                _VideoCard(video: p.afterSurgeryVideo),
-                SizedBox(height: 16.h),
+                    _Label(loc.t('tx_after')),
+                    SizedBox(height: 10.h),
+                    _VideoCard(video: p.afterSurgeryVideo),
+                    SizedBox(height: 16.h),
 
-                const _MyMedicinesButton(),
-                SizedBox(height: 18.h),
+                    const _MyMedicinesButton(),
+                    SizedBox(height: 18.h),
 
-                _Label(loc.t('tx_timeline')),
-                SizedBox(height: 12.h),
-                for (int i = 0; i < p.timeline.length; i++)
-                  _DoseRow(
-                    dose: p.timeline[i],
-                    isLast: i == p.timeline.length - 1,
-                  ),
-                SizedBox(height: 18.h),
+                    if (p.timeline.isNotEmpty) ...[
+                      _Label(loc.t('tx_timeline')),
+                      SizedBox(height: 12.h),
+                      for (int i = 0; i < p.timeline.length; i++)
+                        _DoseRow(
+                          dose: p.timeline[i],
+                          isLast: i == p.timeline.length - 1,
+                        ),
+                      SizedBox(height: 18.h),
+                    ],
 
-                _Label(loc.t('tx_goals')),
-                SizedBox(height: 10.h),
-                for (final g in p.goals) ...[
-                  _GoalCard(goal: g),
-                  SizedBox(height: 10.h),
-                ],
-                SizedBox(height: 8.h),
+                    if (p.goals.isNotEmpty) ...[
+                      _Label(loc.t('tx_goals')),
+                      SizedBox(height: 10.h),
+                      for (final g in p.goals) ...[
+                        _GoalCard(goal: g),
+                        SizedBox(height: 10.h),
+                      ],
+                      SizedBox(height: 8.h),
+                    ],
 
-                _Label(loc.t('tx_upcoming')),
-                SizedBox(height: 10.h),
-                for (final u in p.upcoming) ...[
-                  _UpcomingCard(item: u),
-                  SizedBox(height: 10.h),
-                ],
-              ],
-            ),
+                    if (p.upcoming.isNotEmpty) ...[
+                      _Label(loc.t('tx_upcoming')),
+                      SizedBox(height: 10.h),
+                      for (final u in p.upcoming) ...[
+                        _UpcomingCard(item: u),
+                        SizedBox(height: 10.h),
+                      ],
+                    ],
+                  ],
+                ),
     );
   }
 }

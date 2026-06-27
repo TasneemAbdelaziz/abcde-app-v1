@@ -1,5 +1,6 @@
 import '../models/diagnosis.dart';
 import '../models/medicine.dart';
+import '../models/treatment.dart';
 import '../models/visit.dart';
 import '../models/visit_stage.dart';
 import '../network/api_client.dart';
@@ -101,6 +102,69 @@ class PatientCareApiRepository {
       'stars': stars,
       'comment': comment,
     });
+  }
+
+  /// Treatment Plan, assembled from the data the backend actually exposes:
+  /// the attending doctor + department (visit detail), recovery progress
+  /// derived from the care-journey stage, and today's medicines (prescriptions).
+  ///
+  /// Fields the backend has no endpoint for yet — adherence %, daily goals,
+  /// upcoming appointments, per-dose taken/due status — are left empty so the
+  /// screen can hide those sections instead of showing placeholder data. The
+  /// two explainer videos stay local assets.
+  Future<TreatmentPlan> getTreatmentPlan() async {
+    final d = await _visitDetail();
+    final doctor = _m(d['doctor']);
+    final dept = _m(d['department']);
+    final doctorName = (doctor['full_name'] as String?) ?? '';
+    final deptName = (dept['department_name'] as String?) ?? '';
+
+    // Recovery progress derived from how far along the care-journey stage is.
+    final currentStage = (d['current_stage'] as String?) ?? '';
+    final total = _stageOrder.length;
+    final idx = _stageOrder.indexOf(currentStage);
+    final done = idx >= 0 ? idx : 0; // stages before the current one are complete
+    final recoveryPercent = total == 0 ? 0 : ((done / total) * 100).round();
+
+    // Today's medicines from the prescriptions list. The backend doesn't give
+    // per-dose times/status, so we show the drug + frequency without a schedule.
+    final timeline = <MedicineDose>[];
+    try {
+      final serial = await _serial();
+      final pres = await _api.getJson('/visits/%23$serial/prescriptions');
+      for (final e in _l(pres['data']).whereType<Map<String, dynamic>>()) {
+        final drug = (e['drug_name'] as String?) ?? '';
+        final dose = (e['dose'] as String?) ?? '';
+        timeline.add(MedicineDose(
+          time: '',
+          period: '',
+          name: '$drug $dose'.trim(),
+          note: _sentence((e['frequency'] as String?) ?? ''),
+          status: DoseStatus.upcoming,
+        ));
+      }
+    } catch (_) {
+      // No prescriptions / transient error — leave the timeline empty.
+    }
+
+    final mock = TreatmentPlan.fromMock(); // local explainer videos only
+
+    return TreatmentPlan(
+      doctorName: doctorName,
+      doctorInitials: _initials(doctorName),
+      doctorMeta: deptName,
+      recoveryPercent: recoveryPercent,
+      tasksCompleted: done,
+      tasksTotal: total,
+      nextDose: '',
+      toDischarge: '',
+      adherencePercent: 0,
+      surgeryVideo: mock.surgeryVideo,
+      afterSurgeryVideo: mock.afterSurgeryVideo,
+      timeline: timeline,
+      goals: const [],
+      upcoming: const [],
+    );
   }
 }
 
