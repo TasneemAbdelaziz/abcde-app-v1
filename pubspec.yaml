@@ -64,6 +64,11 @@ dependencies:
   # Camera & image picker for QR code scanning.
   image_picker: ^1.0.0
 
+  # Firebase Cloud Messaging — receives the "open this screen" push relayed
+  # from the watch (watch → POST /remote/open → server → FCM → phone).
+  firebase_core: ^3.6.0
+  firebase_messaging: ^15.1.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

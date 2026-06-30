@@ -52,6 +52,10 @@ class DeepLinkService {
     });
   }
 
+  /// Opens [route] from outside the deep-link channel (e.g. an FCM push).
+  /// Reuses the same allow-list, dedupe, and rating/alert handling.
+  static void open(String? route) => _go(route);
+
   static void _go(String? route) {
     if (route == null || route.isEmpty) return;
     if (!_allowed.contains(route)) return;

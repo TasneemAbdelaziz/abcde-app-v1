@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'core/i18n/locale_controller.dart';
 import 'core/network/api_client.dart';
 import 'core/notifications/local_notifications.dart';
+import 'core/notifications/push_service.dart';
 import 'core/notifications/notification_center.dart';
 import 'core/repositories/auth_repository.dart';
 import 'core/repositories/patient_api_repository.dart';
@@ -17,6 +20,7 @@ import 'core/storage/app_prefs.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/global_alert_overlay.dart';
 import 'features/login/login_vm.dart';
+import 'firebase_options.dart';
 
 // The shell holds the five tabs (Home · Visits · AI Advisor · Reports · Family)
 // with a fixed bottom nav. Detail screens below are pushed on top.
@@ -48,10 +52,21 @@ import 'features/visits/visits_vm.dart';
 /// notification is tapped).
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Background/terminated FCM handler. Runs in its own isolate, so it can't
+/// navigate — the OS shows the notification and tapping it routes via
+/// PushService's onMessageOpenedApp listener.
+@pragma('vm:entry-point')
+Future<void> _fcmBackgroundHandler(RemoteMessage message) async {}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Load persisted flags (e.g. whether onboarding was already seen).
   await AppPrefs.init();
+  // Firebase + push messaging (watch → server → FCM → open screen here).
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(_fcmBackgroundHandler);
   // Set up local (heads-up) notifications. Tapping one opens the list.
   await LocalNotifications.init(
     onTap: (_) =>
@@ -60,6 +75,8 @@ void main() async {
   runApp(const AlameinApp());
   // Listen for deep links relayed from the paired watch.
   DeepLinkService.init();
+  // Listen for FCM "open screen" pushes.
+  PushService.init();
 }
 
 /// Root widget.

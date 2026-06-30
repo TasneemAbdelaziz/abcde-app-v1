@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 
 import '../../core/i18n/locale_controller.dart';
 import '../../core/models/vital.dart';
+import '../../core/network/api_client.dart';
 import '../../core/notifications/notification_center.dart';
+import '../../core/notifications/push_service.dart';
 import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand_bar.dart';
@@ -27,7 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load once the screen is shown (we're authenticated by now). Post-frame so
     // we don't notifyListeners during the first build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<HomeVm>().load();
+      if (!mounted) return;
+      context.read<HomeVm>().load();
+      // We're authenticated here — register this phone for FCM "open screen"
+      // pushes relayed from the watch.
+      PushService.registerToken(context.read<ApiClient>());
     });
   }
 
